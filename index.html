@@ -1,0 +1,3181 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Carnet">
+<meta name="theme-color" content="#ECEEE5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#151916" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<title>Carnet Grimpe et Nage</title>
+<style>
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+</style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Kalam:wght@400;700&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+/* Layout : un topo d'escalade. La semaine est une voie verticale, chaque jour un relais. Papier de carte, courbes de niveau, encre rouge des itinéraires. */
+:root{
+  --paper:#ECEEE5; --sheet:#F8F8F2; --ink:#1D221F; --pencil:#646B63; --line:#CDD2C4;
+  --contour:#B07A45; --esc:#C4372A; --nat:#2272B0; --mai:#3D7D38; --rep:#878D84; --gold:#B5862A; --ok:#2F7A44;
+  --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --hand:"Kalam","Comic Sans MS","Segoe Print",cursive;
+  --body:"Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#151916; --sheet:#1E231F; --ink:#E3E6DB; --pencil:#9CA397; --line:#323A33;
+    --contour:#9A7449; --esc:#F06B5B; --nat:#5BA9E6; --mai:#7AB96F; --rep:#8F968B; --gold:#DBAF4F; --ok:#5CC27A; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#151916; --sheet:#1E231F; --ink:#E3E6DB; --pencil:#9CA397; --line:#323A33;
+  --contour:#9A7449; --esc:#F06B5B; --nat:#5BA9E6; --mai:#7AB96F; --rep:#8F968B; --gold:#DBAF4F; --ok:#5CC27A; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;padding-inline:16px;padding-block:12px 96px}
+#bg{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.55}
+#bg svg{width:100%;height:100%}
+#bg path{fill:none;stroke:var(--contour);stroke-width:1;opacity:.35}
+.wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:2px solid var(--esc);outline-offset:2px}
+button:disabled{cursor:not-allowed}
+.t-esc{--c:var(--esc)} .t-nat{--c:var(--nat)} .t-mai{--c:var(--mai)} .t-rep{--c:var(--rep)}
+.f-mont{--fc:var(--esc)} .f-eau{--fc:var(--nat)} .f-foret{--fc:var(--mai)} .f-all{--fc:var(--gold)}
+
+/* Cartouche */
+.cartouche{display:flex;align-items:stretch;gap:10px}
+.title{flex:1;min-width:0;background:var(--sheet);border:2px solid var(--ink);outline:1px solid var(--ink);outline-offset:3px;padding:10px 14px;margin:4px}
+.title h1{font-family:var(--display);font-weight:700;font-size:1.7rem;line-height:1;text-transform:uppercase;letter-spacing:.04em;margin:0}
+.title p{margin:4px 0 0;font-family:var(--hand);color:var(--pencil);font-size:.95rem;line-height:1.2}
+.packbtn{position:relative;flex:none;width:76px;margin:4px;border:2px solid var(--ink);background:var(--sheet);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:6px}
+.packbtn svg{width:34px;height:34px}
+.packbtn b{font-family:var(--display);font-size:.95rem;text-transform:uppercase;letter-spacing:.05em;line-height:1}
+.packbtn .n{position:absolute;top:-9px;right:-9px;min-width:26px;height:26px;border-radius:13px;background:var(--esc);color:#fff;font-weight:700;font-size:.85rem;display:grid;place-items:center;padding:0 6px}
+.packbtn.has{animation:nudge 2.4s ease-in-out infinite}
+@keyframes nudge{0%,88%,100%{transform:rotate(0)}91%{transform:rotate(-5deg)}94%{transform:rotate(5deg)}97%{transform:rotate(-3deg)}}
+
+.tabs{display:flex;gap:0;border-bottom:2px solid var(--ink)}
+.tabs button{border:2px solid transparent;border-bottom:0;background:none;padding:8px 18px 6px;font-family:var(--display);font-weight:700;font-size:1.15rem;text-transform:uppercase;letter-spacing:.06em;color:var(--pencil);margin-bottom:-2px}
+.tabs button[aria-selected="true"]{background:var(--sheet);border-color:var(--ink);color:var(--ink)}
+
+/* Barre de semaine */
+.weekbar{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;gap:8px}
+.nav{width:44px;height:44px;border-radius:50%;border:1.5px solid var(--ink);background:var(--sheet);display:grid;place-items:center}
+.nav svg{width:20px;height:20px}
+.wk{text-align:center;min-width:0}
+.wk .big{font-family:var(--display);font-weight:700;font-size:2.5rem;line-height:1;text-transform:uppercase}
+.wk .big span{font-family:var(--hand);font-weight:400;font-size:1.05rem;color:var(--esc);margin-left:8px;text-transform:none;display:inline-block;transform:rotate(-3deg)}
+.wk .sub{color:var(--pencil);font-size:.92rem;margin-top:2px}
+.seg{display:inline-flex;margin-top:8px;border:1.5px solid var(--ink);background:var(--sheet);padding:2px;gap:2px}
+.seg button{border:0;background:transparent;padding:4px 14px;font-weight:700;font-size:.9rem;color:var(--pencil);display:flex;gap:6px;align-items:center}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--sheet)}
+.seg small{font-family:var(--hand);font-weight:400;font-size:.78rem}
+.back{display:block;margin:6px auto 0;border:0;background:none;color:var(--esc);font-family:var(--hand);font-size:1rem;text-decoration:underline;text-underline-offset:3px}
+
+.prog{display:flex;flex-direction:column;gap:6px}
+.prog .lbl{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:.9rem;color:var(--pencil);font-variant-numeric:tabular-nums}
+.prog .lbl b{color:var(--ink)}
+.bars{display:flex;gap:3px}
+.bars i{flex:1;height:7px;background:repeating-linear-gradient(90deg,var(--c) 0 4px,transparent 4px 7px);opacity:.35}
+.bars i.on{background:var(--c);opacity:1}
+
+.note{font-family:var(--hand);font-size:1rem;line-height:1.35;color:var(--pencil);border-left:3px solid var(--esc);padding:2px 0 2px 12px}
+
+/* La voie */
+.route{position:relative;display:flex;flex-direction:column;gap:14px;padding-left:62px}
+.route::before{content:"";position:absolute;left:26px;top:20px;bottom:20px;border-left:3px dashed var(--esc)}
+.pitch{position:relative;background:var(--sheet);border:1.5px solid var(--ink);padding:10px 12px 12px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.relay{position:absolute;left:-62px;top:6px;width:54px;height:54px;border-radius:50%;border:2.5px solid var(--esc);background:var(--paper);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1}
+.relay b{font-family:var(--display);font-weight:700;font-size:1rem;letter-spacing:.04em}
+.relay span{font-size:.72rem;color:var(--pencil);margin-top:2px;font-variant-numeric:tabular-nums}
+.pitch.today .relay{background:var(--esc);color:#fff}
+.pitch.today .relay span{color:#fff}
+.pitch.today{box-shadow:4px 4px 0 var(--esc)}
+.phead{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.pname{font-family:var(--display);font-weight:700;font-size:1.3rem;text-transform:uppercase;letter-spacing:.03em}
+.pnote{font-family:var(--hand);color:var(--pencil);font-size:.95rem}
+.row{display:flex;align-items:stretch;gap:8px}
+.open{flex:1;min-width:0;text-align:left;border:0;border-left:5px solid var(--c);background:color-mix(in srgb,var(--c) 9%,var(--sheet));padding:8px 10px;display:flex;flex-direction:column}
+.rtitle{font-weight:700;font-size:1rem;overflow-wrap:anywhere}
+.rmeta{font-size:.84rem;color:var(--pencil)}
+.row.done .rtitle{text-decoration:line-through;text-decoration-color:var(--c);text-decoration-thickness:2px}
+.check{width:48px;flex:none;border:2px solid var(--c);background:var(--sheet);display:grid;place-items:center;color:var(--c)}
+.check svg{width:26px;height:26px;opacity:.15}
+.check[aria-pressed="true"]{background:var(--c);color:var(--sheet)}
+.check[aria-pressed="true"] svg{opacity:1}
+.check:disabled{opacity:.35;border-style:dashed}
+
+.rules{background:var(--sheet);border:1.5px solid var(--ink);padding:12px 16px}
+.rules h2{font-family:var(--display);font-size:1.15rem;text-transform:uppercase;letter-spacing:.05em;margin:0 0 6px}
+.rules ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px;font-size:.93rem}
+
+/* Album */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--sheet);border:1.5px solid var(--ink);padding:8px 10px;display:flex;flex-direction:column;min-width:0}
+.stat small{font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--pencil);font-weight:700}
+.stat b{font-family:var(--display);font-size:1.7rem;line-height:1.05;font-variant-numeric:tabular-nums}
+.stat i{font-style:normal;font-family:var(--hand);font-size:.85rem;color:var(--pencil);line-height:1.2}
+.fragbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--sheet);border:1.5px dashed var(--ink);padding:10px 12px;font-size:.92rem}
+.fragbar .meter{flex:1;min-width:120px;height:8px;background:var(--line)}
+.fragbar .meter i{display:block;height:100%;background:var(--gold)}
+.fam h2{font-family:var(--display);font-size:1.35rem;text-transform:uppercase;letter-spacing:.05em;margin:0;display:flex;align-items:baseline;gap:10px;color:var(--fc)}
+.fam h2 small{font-family:var(--body);font-size:.85rem;color:var(--pencil);letter-spacing:0;text-transform:none;font-weight:600}
+.fam p{margin:2px 0 8px;font-family:var(--hand);color:var(--pencil);font-size:.95rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px}
+.slot{position:relative;border:0;background:none;padding:0;text-align:left}
+.slot .cnt{position:absolute;top:-6px;right:-6px;background:var(--ink);color:var(--sheet);font-size:.75rem;font-weight:700;border-radius:10px;padding:1px 7px;z-index:2}
+
+/* Cartes */
+.card{container-type:inline-size;width:100%;aspect-ratio:5/7;position:relative}
+.cin{position:absolute;inset:0;border-radius:5cqw;background:var(--sheet);border:.9cqw solid var(--ink);padding:5cqw;display:flex;flex-direction:column;gap:2.4cqw;overflow:hidden}
+.ctop{display:flex;justify-content:space-between;align-items:center;font-family:var(--display);font-weight:700;font-size:6.2cqw;text-transform:uppercase;letter-spacing:.06em;color:var(--fc);line-height:1}
+.rar{color:var(--ink);font-family:var(--body);font-size:5.4cqw;letter-spacing:.04em}
+.cart{border:.7cqw solid color-mix(in srgb,var(--fc) 55%,var(--line));aspect-ratio:10/7;overflow:hidden;flex:none}
+.cart svg{width:100%;height:100%;display:block}
+.cname{font-family:var(--display);font-weight:700;font-size:10.5cqw;line-height:.98;text-wrap:balance}
+.creg{font-family:var(--hand);font-size:6cqw;color:var(--pencil);line-height:1.1}
+.clg{font-size:5.3cqw;line-height:1.32;margin:0}
+.cfoot{margin-top:auto;display:flex;justify-content:space-between;font-size:4.8cqw;color:var(--pencil);font-variant-numeric:tabular-nums}
+.r1 .cin{border-color:var(--fc);border-width:1.4cqw}
+.r2 .cin{border:2.4cqw double var(--fc)}
+.r3 .cin{border:1.6cqw solid var(--gold);background:linear-gradient(165deg,color-mix(in srgb,var(--gold) 20%,var(--sheet)),var(--sheet) 55%)}
+.r3 .rar{color:var(--gold)}
+.r3 .cin::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 30%,rgba(255,240,190,.45) 45%,transparent 60%);background-size:250% 100%;pointer-events:none;mix-blend-mode:soft-light}
+@media (prefers-reduced-motion: no-preference){.r3 .cin::after{animation:shine 3.2s linear infinite}}
+@keyframes shine{from{background-position:120% 0}to{background-position:-120% 0}}
+.mini .clg,.mini .creg,.mini .cfoot{display:none}
+.mini .cname{font-size:12cqw}
+.mini .ctop{font-size:7.5cqw}
+.mini .rar{font-size:8cqw}
+.unk .cin{border:.9cqw dashed var(--pencil);background:repeating-linear-gradient(0deg,transparent 0 9cqw,var(--line) 9cqw calc(9cqw + 1px)),var(--sheet);align-items:center;justify-content:center;gap:2cqw;color:var(--pencil)}
+.unk b{font-family:var(--display);font-size:30cqw;line-height:1}
+.unk span{font-size:9cqw;font-variant-numeric:tabular-nums}
+svg .ca-bg{fill:color-mix(in srgb,var(--fc) 7%,var(--sheet))}
+svg .ca-c{fill:none;stroke:var(--contour);stroke-width:.55}
+svg .ca-cm{fill:none;stroke:var(--contour);stroke-width:1.1}
+svg .ca-w{fill:color-mix(in srgb,var(--nat) 22%,var(--sheet));stroke:var(--nat);stroke-width:.8}
+svg .ca-iso{fill:none;stroke:var(--nat);stroke-width:.5;stroke-dasharray:1.6 1.2}
+svg .ca-tr{fill:color-mix(in srgb,var(--mai) 45%,var(--sheet));stroke:var(--mai);stroke-width:.45}
+svg .ca-rt{fill:none;stroke:var(--esc);stroke-width:1.1;stroke-dasharray:2.4 1.6;stroke-linecap:round}
+svg .ca-path{fill:none;stroke:var(--pencil);stroke-width:.7;stroke-dasharray:1 1.4}
+svg .ca-sum{fill:var(--ink)}
+svg .ca-t{fill:var(--ink);font-family:var(--hand);font-size:5.6px}
+svg .ca-wv{fill:none;stroke:var(--nat);stroke-width:.7;stroke-linecap:round}
+
+/* Ouverture de paquet */
+.ov{position:fixed;inset:0;z-index:30;background:color-mix(in srgb,var(--paper) 86%,transparent);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px));overflow-y:auto}
+.stage{width:min(330px,100%);display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center}
+.stage h2{font-family:var(--display);font-weight:700;font-size:1.6rem;text-transform:uppercase;letter-spacing:.05em;margin:0;line-height:1.05}
+.stage .hint{font-family:var(--hand);color:var(--pencil);font-size:1.05rem;margin:0}
+.pack{position:relative;width:min(240px,66vw);aspect-ratio:5/7;border:2.5px solid var(--ink);background:var(--fc);color:#fff;display:flex;flex-direction:column;justify-content:space-between;padding:14px;box-shadow:6px 6px 0 var(--ink);overflow:hidden}
+.pack svg{position:absolute;inset:0;width:100%;height:100%;opacity:.35}
+.pack svg path{fill:none;stroke:#fff;stroke-width:1.2}
+.pack .pk1{position:relative;font-family:var(--display);font-weight:700;font-size:1rem;letter-spacing:.12em;text-transform:uppercase;text-align:left}
+.pack .pk2{position:relative;font-family:var(--display);font-weight:700;font-size:2.1rem;line-height:.95;text-transform:uppercase;text-align:left}
+.pack .pk3{position:relative;font-family:var(--hand);font-size:1rem;text-align:left}
+.pack .tear{position:absolute;left:0;right:0;top:22%;border-top:2px dashed rgba(255,255,255,.85)}
+@media (prefers-reduced-motion: no-preference){
+  .pack.shake{animation:shake .45s ease-in-out}
+  @keyframes shake{20%{transform:rotate(-4deg)}40%{transform:rotate(4deg)}60%{transform:rotate(-3deg) scale(1.03)}80%{transform:rotate(2deg) scale(1.06)}100%{transform:scale(1.1);opacity:0}}
+  .flip .in{transition:transform .6s cubic-bezier(.2,.8,.2,1)}
+  .pop{animation:pop .5s ease-out}
+  @keyframes pop{from{transform:scale(.85) rotate(-3deg);opacity:0}}
+}
+.flip{width:min(280px,76vw);aspect-ratio:5/7;perspective:1200px;border:0;background:none;padding:0}
+.flip .in{position:relative;width:100%;height:100%;transform-style:preserve-3d}
+.flip.on .in{transform:rotateY(180deg)}
+.flip .face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.flip .front{transform:rotateY(180deg)}
+.cback{width:100%;height:100%;border:2.5px solid var(--ink);border-radius:14px;background:repeating-linear-gradient(0deg,transparent 0 22px,color-mix(in srgb,var(--fc) 30%,transparent) 22px 23px),repeating-linear-gradient(90deg,transparent 0 22px,color-mix(in srgb,var(--fc) 30%,transparent) 22px 23px),var(--sheet);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--fc)}
+.cback svg{width:46%}
+.cback b{font-family:var(--display);font-size:1.15rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ink)}
+.cback i{font-family:var(--hand);font-style:normal;color:var(--pencil)}
+.badge{font-family:var(--hand);font-weight:700;font-size:1.2rem;padding:2px 12px;transform:rotate(-3deg);border:2px solid currentColor}
+.badge.new{color:var(--esc)}
+.badge.dbl{color:var(--pencil)}
+.loot{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%}
+.btn{border:2px solid var(--ink);padding:12px 16px;font-weight:700;font-size:1rem;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--sheet);width:100%}
+.btn.primary{background:var(--ink);color:var(--sheet)}
+.btn.c{background:var(--c);border-color:var(--c);color:#fff}
+.btn[aria-pressed="true"]{border-color:var(--ok);color:var(--ok)}
+.btn svg{width:20px;height:20px}
+.btn:disabled{opacity:.45}
+.linkbtn{border:0;background:none;font-family:var(--hand);font-size:1rem;color:var(--pencil);text-decoration:underline;text-underline-offset:3px}
+
+/* Scènes des cartes */
+svg .sky{fill:color-mix(in srgb,var(--fc) 8%,var(--sheet))}
+svg .sg{fill:color-mix(in srgb,var(--pencil) 16%,var(--sheet));stroke:var(--ink);stroke-width:.6}
+svg .sgs{fill:color-mix(in srgb,var(--gold) 22%,var(--sheet));stroke:var(--ink);stroke-width:.6}
+svg .sgd{fill:color-mix(in srgb,var(--ink) 55%,var(--sheet))}
+svg .sl{fill:none;stroke:var(--ink);stroke-width:.6;stroke-linecap:round;stroke-linejoin:round}
+svg .slw{fill:none;stroke:var(--ink);stroke-width:2.4;stroke-linecap:round}
+svg .sh{fill:none;stroke:var(--ink);stroke-width:.35;opacity:.55}
+svg .sh2{fill:var(--ink);opacity:.12}
+svg .sm{fill:color-mix(in srgb,var(--contour) 32%,var(--sheet));stroke:var(--ink);stroke-width:.7;stroke-linejoin:round}
+svg .sb{fill:color-mix(in srgb,var(--contour) 15%,var(--sheet));stroke:var(--pencil);stroke-width:.5}
+svg .sn{fill:var(--sheet);stroke:var(--ink);stroke-width:.4}
+svg .so{fill:var(--sheet);stroke:var(--ink);stroke-width:.6}
+svg .sk2{fill:var(--ink)}
+svg .sw{fill:color-mix(in srgb,var(--nat) 26%,var(--sheet));stroke:var(--nat);stroke-width:.6}
+svg .sw2{fill:color-mix(in srgb,var(--nat) 55%,#5fd0d8)}
+svg .sw3{fill:color-mix(in srgb,var(--nat) 40%,#4fd6c8)}
+svg .sreef{fill:color-mix(in srgb,#9fe6ea 70%,var(--sheet));stroke:var(--nat);stroke-width:.5}
+svg .sdeep{fill:color-mix(in srgb,var(--nat) 80%,#0b2a52)}
+svg .sdeep2{fill:#0d2c55}
+svg .swl{fill:none;stroke:var(--nat);stroke-width:.6;stroke-linecap:round}
+svg .swd{fill:none;stroke:var(--nat);stroke-width:.6;stroke-dasharray:1.5 1.2}
+svg .swf{fill:var(--nat)}
+svg .sgo{fill:var(--gold);stroke:color-mix(in srgb,var(--gold) 55%,var(--ink));stroke-width:.4}
+svg .sgl{fill:none;stroke:var(--gold);stroke-width:.6}
+svg .sgl2{fill:none;stroke:var(--gold);stroke-width:1.6;stroke-linecap:round}
+svg .sgld{fill:none;stroke:var(--gold);stroke-width:1.6;stroke-linecap:round}
+svg .sd{fill:none;stroke:var(--pencil);stroke-width:.5;stroke-dasharray:2 2}
+svg .sd2{fill:none;stroke:var(--gold);stroke-width:.5;stroke-dasharray:1 1.5}
+svg .sd3{fill:none;stroke:var(--pencil);stroke-width:.7;stroke-dasharray:1.5 1.5}
+svg .sar1{fill:none;stroke:var(--esc);stroke-width:1.4;opacity:.5}
+svg .sar2{fill:none;stroke:var(--gold);stroke-width:1.4;opacity:.5}
+svg .sar3{fill:none;stroke:var(--nat);stroke-width:1.4;opacity:.5}
+svg .srf{fill:var(--esc)}
+svg .srs{fill:none;stroke:var(--esc);stroke-width:1.4}
+svg .sr{fill:none;stroke:var(--esc);stroke-width:.9;stroke-dasharray:2 1.4;stroke-linecap:round}
+svg .sto{fill:none;stroke:var(--esc);stroke-width:2.2}
+svg .stk{fill:color-mix(in srgb,var(--contour) 60%,var(--ink))}
+svg .st{fill:color-mix(in srgb,var(--mai) 40%,var(--sheet));stroke:var(--mai);stroke-width:.6}
+svg .stf{fill:var(--mai)}
+svg .stl{fill:none;stroke:var(--mai);stroke-width:.7}
+svg .stm{fill:none;stroke:var(--mai);stroke-width:2.2;stroke-linecap:round}
+svg .sdra{fill:none;stroke:var(--mai);stroke-width:2.2;stroke-linecap:round}
+svg .sbm{fill:none;stroke:var(--mai);stroke-width:2}
+svg .stw{fill:none;stroke:color-mix(in srgb,var(--contour) 60%,var(--ink));stroke-width:1.8;stroke-linecap:round}
+svg .sif{fill:color-mix(in srgb,var(--mai) 75%,var(--ink));stroke:var(--ink);stroke-width:.5}
+svg .sseq{fill:color-mix(in srgb,var(--esc) 55%,var(--contour));stroke:var(--ink);stroke-width:.6}
+svg .sbal{fill:color-mix(in srgb,var(--pencil) 70%,var(--nat));stroke:var(--ink);stroke-width:.6}
+svg .sre{fill:color-mix(in srgb,var(--gold) 45%,var(--sheet));stroke:var(--ink);stroke-width:.5}
+svg .scr{fill:color-mix(in srgb,#a68cf2 70%,var(--sheet));stroke:var(--ink);stroke-width:.5}
+svg .sfl{fill:color-mix(in srgb,#5a7fd0 80%,var(--sheet))}
+svg .sfl2{fill:color-mix(in srgb,#f08aa0 75%,var(--sheet))}
+
+/* Carte unique */
+.r4 .cin{background:var(--ink);color:var(--sheet);border:1.6cqw solid var(--gold)}
+.r4 .ctop,.r4 .rar{color:var(--gold)}
+.r4 .creg,.r4 .cfoot{color:color-mix(in srgb,var(--sheet) 70%,var(--ink))}
+.r4 .cart{border-color:var(--gold)}
+.r4 .cin::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 30%,rgba(255,230,160,.35) 45%,transparent 60%);background-size:250% 100%;pointer-events:none}
+@media (prefers-reduced-motion: no-preference){.r4 .cin::after{animation:shine 2.6s linear infinite}}
+.unk.uq .cin{border:.9cqw dashed var(--gold);color:var(--gold)}
+.clg{display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;overflow:hidden}
+
+/* Fiche */
+.fiche{width:100%;text-align:left;background:var(--sheet);border:1.5px solid var(--ink);padding:12px 14px;font-size:.93rem}
+.fiche dl{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin:0 0 6px}
+.fiche dt{font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:var(--pencil);font-weight:700}
+.fiche dd{margin:0;font-weight:600}
+.fiche h4{font-family:var(--display);font-size:1rem;text-transform:uppercase;letter-spacing:.06em;margin:10px 0 2px;color:var(--fc)}
+.fiche p{margin:0;line-height:1.45}
+.bigcard{width:min(300px,80vw)}
+.after{display:flex;flex-direction:column;gap:10px;width:100%;align-items:center}
+.setdone{font-family:var(--hand);font-size:1.1rem;color:var(--esc);margin:0}
+
+/* Déchirure du paquet */
+.pk{position:relative;width:min(240px,64vw);aspect-ratio:5/7;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.pk:focus-visible{outline:2px solid var(--esc);outline-offset:6px}
+.pkb,.pkf{position:absolute;inset:0}
+.pface{position:absolute;inset:0;border:2.5px solid var(--ink);background:var(--fc);color:#fff;display:flex;flex-direction:column;padding:14px;gap:4px;overflow:hidden;text-align:left}
+.pkb .pface{box-shadow:6px 6px 0 var(--ink)}
+.pface svg{position:absolute;inset:0;width:100%;height:100%;opacity:.3}
+.pface svg path{fill:none;stroke:#fff;stroke-width:1.2}
+.pface span{position:relative}
+.pk1{font-family:var(--display);font-weight:700;font-size:.85rem;letter-spacing:.14em;text-transform:uppercase}
+.pk2{margin-top:30%;font-family:var(--display);font-weight:700;font-size:2.2rem;line-height:.92;text-transform:uppercase}
+.pk3{font-family:var(--hand);font-size:1rem}
+.pk4{margin-top:auto;font-family:var(--display);font-size:1rem;letter-spacing:.1em;text-transform:uppercase;align-self:flex-end;border:2px solid #fff;padding:2px 8px}
+.dots{position:absolute!important;left:0;right:0;top:21%;border-top:2px dashed rgba(255,255,255,.9)}
+.pkf{z-index:3;transform-origin:0% 21%}
+.pkf .pface{background:color-mix(in srgb,var(--fc) 88%,#000)}
+.tl{position:absolute;z-index:4;left:0;top:calc(21% - 2px);height:4px;width:0;background:#fff;box-shadow:0 0 10px 3px rgba(255,255,255,.9);pointer-events:none}
+.pkf.gone{transition:transform .65s cubic-bezier(.3,.6,.4,1),opacity .65s;transform:translate(70%,-150%) rotate(-38deg)!important;opacity:0}
+.pk.open .pkb{animation:bump .5s ease-out}
+@keyframes bump{30%{transform:translateY(8px) scale(1.02)}60%{transform:translateY(-3px)}100%{transform:none}}
+.bits{position:absolute;inset:0;z-index:5;pointer-events:none}
+.bits i{position:absolute;top:20%;width:9px;height:6px;background:var(--fc);border:1px solid var(--ink);animation:bit .9s ease-out forwards}
+.bits i:nth-child(3n){background:var(--sheet)}
+.bits i:nth-child(4n){background:var(--gold)}
+@keyframes bit{to{transform:translate(var(--dx),var(--dy)) rotate(var(--r));opacity:0}}
+.rise{position:absolute;z-index:2;left:12%;right:12%;top:8%;height:70%;pointer-events:none}
+.cbmini{position:absolute;inset:0;border:2px solid var(--ink);border-radius:10px;background:repeating-linear-gradient(0deg,transparent 0 12px,color-mix(in srgb,var(--fc) 30%,transparent) 12px 13px),var(--sheet);display:grid;place-items:center;color:var(--fc);transition:transform .7s cubic-bezier(.2,.9,.3,1.2);transition-delay:calc(var(--k) * .12s)}
+.cbmini svg{width:40%}
+.rise.up .cbmini{transform:translate(calc((var(--k) - 1) * 46%),-62%) rotate(calc((var(--k) - 1) * 12deg))}
+.rise.up .cbmini.ra2,.rise.up .cbmini.ra3,.rise.up .cbmini.ra4{box-shadow:0 0 14px 3px var(--fc)}
+.rise.up .cbmini.ra3,.rise.up .cbmini.ra4{box-shadow:0 0 18px 5px var(--gold)}
+
+/* Révélation */
+.flipwrap{position:relative;display:grid;place-items:center}
+.flip.ra1 .cback{box-shadow:0 0 0 2px var(--fc),0 0 14px var(--fc)}
+.flip.ra2 .cback{box-shadow:0 0 0 3px var(--fc),0 0 26px 4px var(--fc)}
+.flip.ra3 .cback,.flip.ra4 .cback{box-shadow:0 0 0 3px var(--gold),0 0 34px 8px var(--gold)}
+@media (prefers-reduced-motion: no-preference){
+  .flip.ra2:not(.on) .cback,.flip.ra3:not(.on) .cback,.flip.ra4:not(.on) .cback{animation:pulse 1.1s ease-in-out infinite}
+  @keyframes pulse{50%{transform:scale(1.025)}}
+}
+.burst{position:absolute;width:150%;aspect-ratio:1;border-radius:50%;opacity:0;transform:scale(.3);pointer-events:none;
+  background:repeating-conic-gradient(from 0deg,color-mix(in srgb,var(--bc,var(--fc)) 55%,transparent) 0 8deg,transparent 8deg 22deg);
+  -webkit-mask:radial-gradient(circle,#000 25%,transparent 68%);mask:radial-gradient(circle,#000 25%,transparent 68%)}
+.burst.b3,.burst.b4{--bc:var(--gold)}
+.burst.go{opacity:1;transform:scale(1);transition:transform .5s ease-out,opacity .3s}
+@media (prefers-reduced-motion: no-preference){.burst.go{animation:spin 12s linear infinite}@keyframes spin{from{rotate:0deg}to{rotate:360deg}}}
+.badge.uq{color:var(--gold)}
+
+/* Album : sous onglets et collections */
+.subtabs{display:flex;flex-wrap:wrap;gap:6px}
+.subtabs button{border:1.5px solid var(--ink);background:var(--sheet);padding:6px 12px;font-family:var(--display);font-weight:700;font-size:1rem;text-transform:uppercase;letter-spacing:.04em;color:var(--fc)}
+.subtabs button small{font-family:var(--body);font-size:.75rem;color:var(--pencil);letter-spacing:0}
+.subtabs button[aria-selected="true"]{background:var(--fc);border-color:var(--fc);color:#fff}
+.subtabs button[aria-selected="true"] small{color:#fff}
+.set{background:var(--sheet);border:1.5px solid var(--ink);padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.set.ok{box-shadow:4px 4px 0 var(--gold);border-color:var(--gold)}
+.sethead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.sethead b{font-family:var(--display);font-size:1.2rem;text-transform:uppercase;letter-spacing:.04em}
+.sethead span{font-size:.85rem;color:var(--pencil);font-variant-numeric:tabular-nums}
+.set p{margin:0;font-family:var(--hand);color:var(--pencil)}
+.setbar{height:6px;background:var(--line)}
+.setbar i{display:block;height:100%;background:var(--gold)}
+.set ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:4px}
+.set li{font-size:.82rem}
+.set li.miss{padding:2px 8px;border:1px dashed var(--pencil);color:var(--pencil)}
+.setc{border:1px solid var(--fc);background:color-mix(in srgb,var(--fc) 10%,var(--sheet));padding:2px 8px;font-size:.82rem}
+
+/* Toast */
+.toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:40;width:min(440px,calc(100% - 32px));background:var(--ink);color:var(--sheet);border:2px solid var(--ink);box-shadow:4px 4px 0 var(--esc);padding:10px 12px;display:flex;align-items:center;gap:12px}
+.toast p{margin:0;flex:1;font-size:.95rem;line-height:1.3}
+.toast p b{display:block;font-family:var(--display);font-size:1.15rem;text-transform:uppercase;letter-spacing:.04em}
+.toast button{border:2px solid var(--sheet);background:var(--esc);color:#fff;font-weight:700;padding:8px 12px;flex:none}
+
+/* Fiche de séance */
+.backdrop{position:fixed;inset:0;background:rgba(15,20,17,.45);z-index:20}
+.sheet{position:fixed;z-index:21;inset:auto 0 0 0;max-height:94%;background:var(--paper);border-top:2.5px solid var(--ink);display:flex;flex-direction:column;overflow:hidden;padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (min-width:720px){.sheet{inset:4% auto 4% 50%;transform:translateX(-50%);width:640px;max-height:none;border:2.5px solid var(--ink);box-shadow:8px 8px 0 var(--ink)}}
+.shead{background:var(--c);color:#fff;padding:14px 16px 12px;display:flex;gap:12px;align-items:flex-start}
+.shead .kind{font-family:var(--hand);font-size:1rem;opacity:.95}
+.shead h2{font-family:var(--display);font-weight:700;font-size:1.9rem;line-height:1.02;margin:0;text-transform:uppercase;text-wrap:balance}
+.shead .when{font-size:.88rem;opacity:.92;margin-top:4px}
+.x{margin-left:auto;flex:none;width:40px;height:40px;border-radius:50%;border:2px solid #fff;background:transparent;color:#fff;display:grid;place-items:center}
+.x svg{width:20px;height:20px}
+.sbody{overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:16px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:.82rem;font-weight:600;padding:3px 10px;background:var(--sheet);border:1.5px solid var(--ink);font-variant-numeric:tabular-nums}
+.blk h3{font-family:var(--display);font-weight:700;font-size:1.1rem;text-transform:uppercase;letter-spacing:.06em;color:var(--c);margin:0 0 6px}
+.blk ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:5px}
+.blk p{margin:0}
+.figs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:10px}
+.fig{background:var(--sheet);border:1.5px solid var(--ink);padding:8px 10px 10px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.fig svg{width:100%;aspect-ratio:160/100;height:auto;display:block}
+.fig b{font-size:.95rem;line-height:1.2}
+.fig span{color:var(--pencil);font-size:.84rem;line-height:1.35}
+.fig em{font-style:normal;align-self:flex-start;font-family:var(--hand);font-size:.85rem;padding:0 8px;border:1.5px solid var(--c);color:var(--c);transform:rotate(-2deg)}
+svg .b{fill:none;stroke:var(--c);stroke-width:5;stroke-linecap:round;stroke-linejoin:round}
+svg .g{fill:none;stroke:var(--c);stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:3 6;opacity:.45}
+svg .e{fill:none;stroke:var(--pencil);stroke-width:3;stroke-linecap:round}
+svg .ef{fill:color-mix(in srgb,var(--pencil) 22%,var(--sheet));stroke:var(--pencil);stroke-width:2}
+svg .df{fill:var(--pencil)}
+svg .h{fill:var(--c)}
+svg .a{fill:none;stroke:var(--ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.pool{background:var(--sheet);border:1.5px solid var(--ink);padding:10px 12px;font-size:.92rem}
+.pool b{display:block;margin-bottom:2px}
+.actions{display:flex;flex-direction:column;gap:8px}
+.reward{font-family:var(--hand);color:var(--pencil);text-align:center;font-size:.95rem;margin:0}
+
+/* Minuteur */
+.timer{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;padding-block:4px 8px}
+.tphase{font-family:var(--display);font-weight:700;font-size:1.1rem;text-transform:uppercase;letter-spacing:.12em;color:var(--tc)}
+.ring{position:relative;width:min(200px,54vw);aspect-ratio:1;max-width:100%}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring .trk{fill:none;stroke:var(--line);stroke-width:10}
+.ring .arc{fill:none;stroke:var(--tc);stroke-width:10;stroke-linecap:butt}
+.tnum{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:4.4rem;font-variant-numeric:tabular-nums}
+.tfig{width:min(220px,58vw);max-width:100%}
+.tfig svg{width:100%;height:auto;display:block}
+.tfig.next{opacity:.45}
+.tname{font-weight:700;font-size:1.25rem;text-wrap:balance}
+.thint{color:var(--pencil);font-size:.92rem;max-width:42ch}
+.tprog{font-size:.82rem;color:var(--pencil);font-variant-numeric:tabular-nums}
+.tctl{display:grid;grid-template-columns:1fr 1.4fr 1fr;gap:8px;width:100%}
+.tctl .btn{padding:12px 6px}
+.fin{font-family:var(--display);font-size:2rem;font-weight:700}
+@media (prefers-reduced-motion: no-preference){.sheet{animation:up .22s ease-out}@keyframes up{from{transform:translateY(24px);opacity:.4}}@media (min-width:720px){.sheet{animation:none}}}
+</style>
+
+</head>
+<body>
+<div id="bg" aria-hidden="true"></div>
+<div class="wrap">
+  <header class="cartouche">
+    <div class="title">
+      <h1>Carnet Grimpe et Nage</h1>
+      <p id="sync">Topo de la semaine</p>
+    </div>
+    <button class="packbtn" id="packBtn" aria-label="Ouvrir un paquet">
+      <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><rect x="9" y="5" width="22" height="30" rx="2"/><path d="M9 12h22" stroke-dasharray="2 2.5"/><path d="M14 27l4-7 3 4 2-3 4 6z" fill="currentColor" stroke="none"/></svg>
+      <b>Paquets</b>
+      <span class="n" id="packN" hidden>0</span>
+    </button>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" id="tabW" aria-selected="true">Semaine</button>
+    <button role="tab" id="tabA" aria-selected="false">Album</button>
+  </nav>
+
+  <section id="viewW" class="wrap" style="max-width:none">
+    <div class="weekbar">
+      <button class="nav" id="prev" aria-label="Semaine précédente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <div class="wk">
+        <div class="big" id="wkBig">Semaine A</div>
+        <div class="sub" id="wkSub"></div>
+        <div class="seg" role="group" aria-label="Type de semaine">
+          <button id="segA" aria-pressed="false">A</button>
+          <button id="segB" aria-pressed="false">B</button>
+        </div>
+        <button class="back" id="backNow" hidden>Revenir à cette semaine</button>
+      </div>
+      <button class="nav" id="next" aria-label="Semaine suivante"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+    </div>
+    <div class="prog">
+      <div class="lbl"><span id="progTxt"></span><span id="phaseTxt"></span></div>
+      <div class="bars" id="bars"></div>
+    </div>
+    <p class="note" id="noteWeek"></p>
+    <div class="route" id="days"></div>
+    <section class="rules">
+      <h2>Règles du topo</h2>
+      <ul>
+        <li>Chaque séance cochée rapporte un paquet de 3 cartes : Montagnes pour l'escalade, Eaux pour la natation, Forêts pour la maison.</li>
+        <li>Semaine complète ou collection complète : un Paquet du Sommet, avec une carte épique ou mieux.</li>
+        <li>159 lieux à découvrir, dont 9 cartes uniques qu'on ne peut obtenir qu'une seule fois.</li>
+        <li>On coche le jour même ou après, pas à l'avance.</li>
+        <li>La planche n'est jamais placée la veille d'une séance d'escalade, et jamais d'escalade deux jours de suite.</li>
+        <li>En natation, tu dois pouvoir parler en nageant.</li>
+        <li>Jour de grosse fatigue : la séance maison devient la Maison 3 et la natation peut être raccourcie d'un tiers.</li>
+        <li>Planche : à la moindre gêne dans un doigt, on arrête et on passe à la mobilité.</li>
+      </ul>
+    </section>
+  </section>
+
+  <section id="viewA" class="wrap" style="max-width:none" hidden></section>
+</div>
+
+<div class="ov" id="ov" hidden><div class="stage" id="stage"></div></div>
+<div class="toast" id="toast" hidden></div>
+
+<div class="backdrop" id="backdrop" hidden></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sTitle" hidden>
+  <div class="shead">
+    <div>
+      <div class="kind" id="sKind"></div>
+      <h2 id="sTitle"></h2>
+      <div class="when" id="sWhen"></div>
+    </div>
+    <button class="x" id="sClose" aria-label="Fermer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+  <div class="sbody" id="sBody"></div>
+</div>
+
+<script>
+(function(){
+"use strict";
+/* ---------- Dates et semaines ---------- */
+var REF = new Date(2026, 9, 12); // lundi 12 octobre 2026 : semaine A, S1 du cycle
+var DAY = 864e5;
+var JOURS = ["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"];
+var MOIS = ["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
+function pad(n){return (n<10?"0":"")+n}
+function iso(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
+function mondayOf(d){var x=new Date(d.getFullYear(),d.getMonth(),d.getDate());x.setDate(x.getDate()-((x.getDay()+6)%7));return x}
+function addDays(d,n){var x=new Date(d.getFullYear(),d.getMonth(),d.getDate());x.setDate(x.getDate()+n);return x}
+function weekIdx(mon){return Math.round((mon-REF)/(7*DAY))}
+function fmt(d){return d.getDate()+" "+MOIS[d.getMonth()]}
+
+/* ---------- Piscine Aspirant Dunand ---------- */
+var VACANCES=[["2026-10-19","2026-11-01"],["2026-12-21","2027-01-03"],["2027-02-08","2027-02-21"],["2027-04-05","2027-04-18"]];
+var H_SCOL=["11h30 à 13h45","7h00 à 8h45 et 11h30 à 13h45","7h00 à 8h45 et 11h30 à 18h00","7h00 à 8h45 et 11h30 à 13h45","7h00 à 8h45, 11h30 à 13h45 et 17h00 à 22h00","7h00 à 18h00 (15h à 18h réservé aux familles)","8h00 à 18h00"];
+var H_VAC=["10h00 à 18h00","7h00 à 18h00","7h00 à 18h00","7h00 à 18h00","7h00 à 22h00","7h00 à 18h00","8h00 à 18h00"];
+function pool(date,di){
+  var s=iso(date);
+  if(s<"2026-09-01"||s>"2027-07-04") return {p:"Horaires à vérifier sur paris.fr pour cette période",h:""};
+  for(var i=0;i<VACANCES.length;i++){if(s>=VACANCES[i][0]&&s<=VACANCES[i][1]) return {p:"Petites vacances scolaires",h:H_VAC[di]}}
+  return {p:"Période scolaire",h:H_SCOL[di]};
+}
+
+/* ---------- Planning type ---------- */
+var SOIR="Le soir, après 18h30";
+var TPL={
+  A:{travail:[1,2,3],jours:[
+    [{k:"nat-cont",q:"Fin de matinée, à la piscine"},{k:"esc-tech",q:"Fin d'après midi"}],
+    [{k:"m1",q:SOIR}],[{k:"m2",q:SOIR}],[{k:"repos"}],
+    [{k:"esc-force"}],[{k:"nat-blocs",q:"Le matin"}],[{k:"esc-vol"}]]},
+  B:{travail:[0,1,3,4],jours:[
+    [{k:"m1",q:SOIR}],[{k:"repos"}],[{k:"esc-tech"}],
+    [{k:"m2",q:SOIR}],[{k:"m3",q:SOIR}],[{k:"esc-force"}],[{k:"nat-blocs"}]]}
+};
+var NOTE={
+  A:"Semaine A : 4 jours libres pour 5 séances. Le lundi est doublé (natation en fin de matinée, escalade technique en fin d'après midi), car la technique est la séance la plus douce pour les doigts.",
+  B:"Semaine B : 3 jours libres, donc 2 escalades et 1 natation. Les séances maison occupent les soirs de travail et le mardi reste un vrai jour de repos."
+};
+var PHASES={1:"Semaines 1 et 2 : base",2:"Semaines 3 et 4 : progression",3:"Semaine 5 : pic",4:"Semaine 6 : allégée"};
+function phaseOf(w){return w==null?1:(w<=2?1:(w<=4?2:(w===5?3:4)))}
+
+/* ---------- Contenu des séances ---------- */
+function L(m){return m/25}
+var ECH_ESC=["5 min de mobilité : poignets, cercles de bras, hanches, colonne","Ouverture et fermeture des mains, 30 fois","6 à 8 blocs très faciles (jaune, vert), en montant progressivement vers le bleu","Grimper lentement, sans tirer fort sur les doigts"];
+var EXO={
+  "Pompes":"Mains largeur d'épaules, corps gainé. Sur les genoux si la forme se dégrade.",
+  "Pompes pieds sur le marchepied":"Pieds surélevés, corps gainé. Repasse au sol si le dos se creuse.",
+  "Face pull à l'élastique":"Élastique accroché à hauteur du visage, tirer vers le front en ouvrant les coudes.",
+  "Rotation externe à l'élastique":"Coude collé au corps à 90°, tourner l'avant bras vers l'extérieur. Change de bras à chaque tour.",
+  "Gainage frontal":"Sur les avant bras, bassin aligné, respiration lente.",
+  "Gainage latéral":"Sur un avant bras, hanches hautes. Change de côté à chaque tour.",
+  "Gainage touches d'épaule":"Position de pompe, toucher l'épaule opposée sans faire bouger le bassin.",
+  "Extension de poignets 3 kg":"Avant bras posé sur la cuisse, paume vers le sol, monter et descendre lentement. Change de main à mi temps.",
+  "Élévations latérales 3 kg":"Bras légèrement fléchis, monter jusqu'à l'horizontale, redescendre en 3 secondes.",
+  "Dead bug":"Sur le dos, bras et jambes en l'air, descendre bras et jambe opposés en gardant le bas du dos au sol.",
+  "Chat vache":"À quatre pattes, enrouler puis creuser le dos lentement.",
+  "Ouverture thoracique au sol":"Allongé sur le côté, genoux pliés, ouvrir le bras du dessus vers l'arrière. Change de côté à mi temps.",
+  "Fente, fléchisseurs de hanche":"Genou arrière au sol, avancer le bassin. Change de côté à mi temps.",
+  "Étirement avant bras":"Bras tendu, paume vers l'avant puis vers soi, 15 secondes par position.",
+  "Crunch inversé":"Sur le dos, genoux pliés, enrouler le bassin pour amener les genoux vers la poitrine. Redescendre en 3 secondes, le bas du dos reste au sol.",
+  "Hollow body (position creuse)":"Sur le dos, bas du dos plaqué au sol, bras et jambes tendus et décollés. Plie les genoux si le dos se creuse.",
+  "Ouverture et fermeture des mains":"Ouvrir grand les doigts puis serrer le poing, rapidement, contre l'élastique ou à vide.",
+  "Suspension pieds au sol":"Sur les plus grosses prises de la planche, bras tendus, les pieds restent au sol devant toi.",
+  "Suspension sur la planche":"Grosse réglette, pieds sur le marchepied, bras tendus et épaules engagées.",
+  "Passe bâton à l'élastique":"Élastique tendu, bras écartés et tendus, passer de devant à derrière la tête puis revenir."
+};
+var ABDOS=["Gainage frontal","Gainage latéral","Gainage touches d'épaule","Dead bug","Crunch inversé","Hollow body (position creuse)"];
+
+/* ---------- Illustrations des exercices ---------- */
+function r1(n){return Math.round(n*10)/10}
+function hd(x,y,dx,dy){var l=Math.hypot(dx,dy)||1,ux=dx/l,uy=dy/l;return "M"+r1(x-ux*7-uy*4.5)+" "+r1(y-uy*7+ux*4.5)+"L"+x+" "+y+"L"+r1(x-ux*7+uy*4.5)+" "+r1(y-uy*7-ux*4.5)}
+function B(d){return '<path class="b" d="'+d+'"/>'}
+function Gh(d){return '<path class="g" d="'+d+'"/>'}
+function Eq(d){return '<path class="e" d="'+d+'"/>'}
+function Hd(x,y){return '<circle class="h" cx="'+x+'" cy="'+y+'" r="7"/>'}
+function Bx(x,y,w,h){return '<rect class="ef" x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="3"/>'}
+function Ar(x1,y1,x2,y2){return '<path class="a" d="M'+x1+" "+y1+"L"+x2+" "+y2+hd(x2,y2,x2-x1,y2-y1)+'"/>'}
+function Ar2(x1,y1,x2,y2){return '<path class="a" d="M'+x1+" "+y1+"L"+x2+" "+y2+hd(x2,y2,x2-x1,y2-y1)+hd(x1,y1,x1-x2,y1-y2)+'"/>'}
+function Qa(x1,y1,cx,cy,x2,y2){return '<path class="a" d="M'+x1+" "+y1+"Q"+cx+" "+cy+" "+x2+" "+y2+hd(x2,y2,x2-cx,y2-cy)+'"/>'}
+function Db(x,y){return Eq("M"+(x-6)+" "+y+"H"+(x+6))+'<rect class="df" x="'+(x-10)+'" y="'+(y-6)+'" width="5" height="12" rx="1"/><rect class="df" x="'+(x+5)+'" y="'+(y-6)+'" width="5" height="12" rx="1"/>'}
+var GND=Eq("M8 89H152");
+var STAND="M80 26L80 58M80 58L70 88M80 58L90 88";
+var FIG={
+  pompes:GND+Gh("M120 74L30 85M120 74L108 80L120 88")+B("M120 58L30 85M120 58L120 88")+Hd(130,54)+Ar2(144,58,144,78),
+  pompesMarche:GND+Bx(14,54,40,35)+B("M120 62L34 54M120 62L120 88")+Hd(130,59)+Ar2(142,56,142,78),
+  facePull:GND+Eq("M150 8V89")+Eq("M70 22L150 30")+Gh("M58 34L100 30")+B("M58 28L58 60M58 60L50 88M58 60L66 88M58 34L44 26L70 22")+Hd(58,18)+Ar(118,16,88,16),
+  rotExt:GND+Eq("M42 50L150 58")+Gh("M68 52L88 57")+B(STAND+"M70 30L90 30M70 30L68 52L42 50M90 30L92 56")+Hd(80,16)+Qa(86,68,66,78,44,62),
+  gainageF:GND+B("M118 64L30 85M118 64L118 87L136 87")+Hd(128,60)+'<path class="a" d="M30 74L116 52" stroke-dasharray="2 5"/>',
+  gainageL:GND+B("M118 60L30 86M118 60L118 87L132 87M116 60L112 28")+Hd(127,55),
+  touches:GND+B("M120 60L30 85M120 60L122 88M114 62L100 72L112 59")+Hd(130,56)+Qa(96,80,88,70,98,62),
+  extPoignets:'<path d="M18 68H104" stroke="var(--line)" stroke-width="14" stroke-linecap="round"/>'+Gh("M98 58L108 74")+Db(110,78)+B("M26 58L98 58L112 46")+Db(114,42)+Qa(126,76,134,62,126,46),
+  elev:GND+Gh("M70 30L64 58M90 30L96 58")+B(STAND+"M70 30L90 30M70 30L38 32M90 30L122 32")+Hd(80,16)+Db(34,32)+Db(126,32)+Qa(58,66,40,60,34,44)+Qa(102,66,120,60,126,44),
+  deadbug:GND+B("M46 82L92 82M52 82L54 52M52 82L22 74M92 82L94 58L118 58M92 82L142 78")+Hd(36,78),
+  chatVache:GND+Gh("M58 62Q84 80 110 62")+B("M58 62Q84 40 110 62M58 62L58 88L36 88M110 62L110 88")+Hd(121,68)+Ar2(84,22,84,38),
+  thorax:GND+Gh("M44 78L82 66")+B("M40 80L84 82M84 82L106 70L104 87M44 82L76 87M44 78L22 52")+Hd(30,76)+Qa(84,58,58,32,28,44),
+  fente:GND+B("M80 58L60 88L36 88M80 58L106 62L106 88M80 58L82 28M82 34L90 50L80 56")+Hd(83,18)+Ar(88,74,110,74),
+  avantBras:GND+B("M40 30L40 62M40 62L32 88M40 62L48 88M40 36L106 38L110 18M40 42L76 58L112 24")+Hd(40,20)+Qa(130,44,136,28,122,14),
+  passeBaton:GND+Gh("M64 44L98 54M64 44L30 54")+B("M64 40L64 66M64 66L56 88M64 66L72 88M64 44L66 12")+Hd(64,30)+Qa(102,44,66,-12,26,44),
+  mains:'<rect class="b" x="24" y="48" width="28" height="28" rx="8"/>'+B("M29 48V28M35 48V22M41 48V22M47 48V28M52 62L62 52")+'<rect class="b" x="106" y="44" width="32" height="32" rx="10"/>'+B("M112 54H132")+Ar2(70,62,96,62),
+  suspSol:GND+Bx(52,6,56,12)+B("M80 18L80 44M80 46L78 68L98 76L104 88")+Hd(89,40),
+  suspPlanche:GND+Bx(42,6,56,12)+Bx(100,62,34,27)+B("M70 18L70 44M70 46L70 70L92 76L112 62")+Hd(79,40),
+  crunchInv:GND+Gh("M80 82L92 58L118 58")+B("M36 82L80 82M40 85L76 87M80 82L72 56L94 48")+Hd(26,78)+Qa(124,50,116,28,94,36),
+  hollow:GND+B("M18 64L48 72M56 74Q78 92 102 78L142 62")+Hd(50,64)+Ar2(24,46,140,46)
+};
+var FIGOF={"Pompes":"pompes","Pompes pieds sur le marchepied":"pompesMarche","Face pull à l'élastique":"facePull","Rotation externe à l'élastique":"rotExt","Gainage frontal":"gainageF","Gainage latéral":"gainageL","Gainage touches d'épaule":"touches","Extension de poignets 3 kg":"extPoignets","Élévations latérales 3 kg":"elev","Dead bug":"deadbug","Chat vache":"chatVache","Ouverture thoracique au sol":"thorax","Fente, fléchisseurs de hanche":"fente","Fente, hanche droite":"fente","Fente, hanche gauche":"fente","Étirement avant bras":"avantBras","Passe bâton à l'élastique":"passeBaton","Ouverture et fermeture des mains":"mains","Suspension pieds au sol":"suspSol","Suspension sur la planche":"suspPlanche","Crunch inversé":"crunchInv","Hollow body (position creuse)":"hollow"};
+function fig(name){var f=FIG[FIGOF[name]];return f?'<svg viewBox="0 0 160 100" role="img" aria-label="Illustration : '+esc(name)+'">'+f+'</svg>':""}
+var M1={1:{t:3,e:["Pompes","Face pull à l'élastique","Rotation externe à l'élastique","Gainage frontal","Gainage latéral"]},
+        2:{t:3,e:["Pompes","Face pull à l'élastique","Extension de poignets 3 kg","Gainage touches d'épaule","Gainage latéral"]},
+        3:{t:3,e:["Pompes pieds sur le marchepied","Face pull à l'élastique","Élévations latérales 3 kg","Extension de poignets 3 kg","Hollow body (position creuse)"]},
+        4:{t:2,e:["Pompes","Face pull à l'élastique","Rotation externe à l'élastique","Gainage frontal","Gainage latéral"]}};
+var M3E=["Gainage frontal","Dead bug","Crunch inversé","Chat vache","Ouverture thoracique au sol","Fente, fléchisseurs de hanche","Étirement avant bras"];
+var PLANCHE={1:{n:6,c:"Grosse réglette, pieds posés sur le marchepied : les jambes portent une bonne partie du poids."},
+             2:{n:7,c:"Grosse réglette, pieds toujours sur le marchepied mais appui plus léger."},
+             3:{n:7,c:"Grosse réglette, poids du corps partiel : les pieds effleurent le marchepied."},
+             4:{n:5,c:"Retour aux réglages de la semaine 1 : pieds bien appuyés."}};
+var MOB=[["Passe bâton à l'élastique",60,"Élastique tendu bras écartés, passer devant puis derrière la tête."],["Ouverture thoracique au sol",60,EXO["Ouverture thoracique au sol"]],["Étirement avant bras",60,EXO["Étirement avant bras"]],["Chat vache",60,EXO["Chat vache"]],["Fente, hanche droite",45,"Genou gauche au sol, avancer le bassin."],["Fente, hanche gauche",45,"Genou droit au sol, avancer le bassin."]];
+
+function circuit(exos,tours,work,rest){
+  var s=[];
+  for(var t=0;t<tours;t++){for(var i=0;i<exos.length;i++){
+    s.push({k:"work",n:exos[i],d:work,h:EXO[exos[i]]||"",tour:t+1});
+    var last=(t===tours-1&&i===exos.length-1);
+    if(!last) s.push({k:"rest",n:"Repos",d:rest,h:"Ensuite : "+exos[(i+1)%exos.length]});
+  }}
+  return s;
+}
+function sumSegs(s){var t=0;for(var i=0;i<s.length;i++)t+=s[i].d;return t}
+function mmss(sec){sec=Math.max(0,Math.round(sec));return Math.floor(sec/60)+":"+pad(sec%60)}
+
+function session(key,ph){
+  var o;
+  if(key==="esc-tech"){
+    var c={1:["4 exercices de 10 min sur des blocs bleus, un niveau sous ton max. Récupération libre entre les essais.","Pieds silencieux : poser chaque pied sans aucun bruit.","Pied précis : poser chaque pied du premier coup, sans le réajuster.","Bras tendus : rester bras tendus dès que possible, pousser avec les jambes.","Désescalade : redescendre chaque bloc par les prises."],
+           2:["4 exercices de 10 min sur des bleus et des rouges faciles.","Lecture : observer le bloc 1 min et mimer la séquence avant de grimper.","Hanche contre le mur : grimper de profil sur les mouvements longs.","Drapeau : une jambe en contrepoids au lieu de poser les deux pieds.","Crochets : chercher un crochet de talon ou de pointe sur 3 blocs."],
+           3:["Les thèmes des semaines 3 et 4, appliqués sur des rouges.","4 rouges déjà réussis, refaits en visant zéro bruit de pied.","Puis 2 rouges nouveaux : 1 min de lecture, puis essai à vue.","2 à 3 min de récupération entre les rouges."],
+           4:["Semaine allégée : 30 min seulement.","Blocs verts et bleus, en cherchant la fluidité.","Un seul thème au choix : pieds silencieux, bras tendus ou désescalade."]};
+    o={t:"esc",kind:"Escalade",titre:"Escalade technique",duree:ph===4?"1h":"1h15",obj:"Grimper mieux plutôt que plus dur : placement des pieds, économie, lecture des blocs.",ech:ECH_ESC,corps:c[ph],ret:["2 blocs très faciles, très lentement","5 min d'étirements : avant bras (fléchisseurs et extenseurs), épaules"]};
+  } else if(key==="esc-force"){
+    var f={1:["3 blocs projet, rouges ou au dessus.","4 essais maximum par bloc.","3 min de repos entre deux essais, montre en main.","Arrêt dès que la qualité baisse ou qu'un doigt tire."],
+           2:["4 blocs projet.","4 essais maximum par bloc, 3 min de repos.","Travailler les mouvements durs isolément, puis relier."],
+           3:["4 blocs projet rouges.","Plus 1 bloc au dessus de ton niveau, travaillé par morceaux, 3 essais maximum.","3 à 4 min de repos entre les essais."],
+           4:["Pas de projet cette semaine.","6 rouges déjà réussis, 1 à 2 fois chacun, en visant la propreté.","2 min de repos entre les blocs."]};
+    o={t:"esc",kind:"Escalade",titre:"Escalade bloc force",duree:ph===4?"1h":"1h20",obj:"Gagner en force sur tes blocs rouges et sur le niveau au dessus.",ech:ECH_ESC.concat(["2 blocs rouges déjà réussis pour finir"]),corps:f[ph],ret:["3 séries de 10 pompes","3 séries de 15 rotations externes à l'élastique si tu l'as dans ton sac","Étirements avant bras et épaules"]};
+  } else if(key==="esc-vol"){
+    var v={1:["Circuits 4x4 : 4 blocs faciles (vert, bleu facile) enchaînés sans pause, 4 fois.","4 min de repos entre les tours.","Variante en voie : 4 voies faciles avec 3 min de repos."],
+           2:["Circuits 4x4 avec 1 bleu difficile dans chaque série de 4.","4 min de repos entre les tours."],
+           3:["5 tours de 4x4.","4 min de repos entre les tours.","Si les avant bras brûlent trop au 4e tour, arrête toi à 4."],
+           4:["3 tours de 4x4 très faciles.","Ou 30 min de grimpe libre, juste pour le plaisir."]};
+    o={t:"esc",kind:"Escalade",titre:"Escalade volume",duree:ph===4?"1h":"1h15",obj:"Endurance de grimpe et plaisir : du volume sans abîmer les doigts.",ech:ECH_ESC,corps:v[ph],ret:["5 min de grimpe très facile","5 min d'étirements"]};
+  } else if(key==="nat-cont"){
+    var rep={1:400,2:500,3:600,4:400}[ph], tot=200+2*rep+200;
+    o={t:"nat",kind:"Natation",titre:"Natation endurance continue",duree:{1:"45 min",2:"50 min",3:"55 min",4:"45 min"}[ph],obj:"Dépenser de l'énergie en restant en aisance respiratoire.",
+       allure:"Allure confortable : tu dois pouvoir parler, effort ressenti 4 à 5 sur 10.",
+       ech:["200 m brasse très souple ("+L(200)+" longueurs)"],
+       corps:["2 x "+rep+" m brasse, allure confortable, 1 min de repos ("+L(2*rep)+" longueurs)","100 m dos ou battements avec planche, pour soulager la nuque et les genoux ("+L(100)+" longueurs)"],
+       ret:["100 m très lent, nage au choix ("+L(100)+" longueurs)"],total:tot};
+  } else if(key==="nat-blocs"){
+    var b={1:[4,200],2:[4,250],3:[6,200],4:[4,200]}[ph], tb=300+b[0]*b[1]+100;
+    o={t:"nat",kind:"Natation",titre:"Natation endurance par blocs",duree:{1:"45 min",2:"50 min",3:"55 min",4:"45 min"}[ph],obj:"Même allure confortable, découpée en blocs pour nager plus au total.",
+       allure:"Allure confortable : tu dois pouvoir parler, effort ressenti 4 à 5 sur 10.",
+       ech:["200 m brasse souple ("+L(200)+" longueurs)","4 x 25 m glisse longue : une coulée maximale à chaque mouvement ("+L(100)+" longueurs)"],
+       corps:[b[0]+" x "+b[1]+" m brasse, allure confortable, 30 s de repos ("+L(b[0]*b[1])+" longueurs)"],
+       ret:["100 m dos souple ("+L(100)+" longueurs)"],total:tb};
+  } else if(key==="m1"){
+    var m=M1[ph], segs=circuit(m.e,m.t,40,20);
+    o={t:"mai",kind:"Maison",titre:"Maison 1 : gainage et antagonistes",duree:mmss(sumSegs(segs)).replace(":"," min ")+" s",obj:"Renforcer les muscles opposés à la grimpe (pousseurs, coiffe des rotateurs, extenseurs) et la sangle abdominale.",
+       ech:["Le premier tour sert d'échauffement : amplitude complète, rythme calme"],
+       corps:[m.t+" tours de "+m.e.length+" exercices, 40 s de travail et 20 s de repos"],exos:m.e,
+       ret:["1 min de respiration lente au sol, puis étirement des pectoraux contre un mur"],segs:segs,mat:"Tapis, élastique"+(ph>=2?", poids de 3 kg":"")+(ph===3?", marchepied":"")};
+  } else if(key==="m2"){
+    var pl=PLANCHE[ph], s2=[{k:"work",n:"Ouverture et fermeture des mains",d:60,h:"Contre l'élastique ou à vide, rapide.",tag:"Échauffement"}];
+    for(var i=0;i<3;i++){s2.push({k:"work",n:"Suspension pieds au sol",d:15,h:"Sur les plus grosses prises, pieds au sol, bras tendus.",tag:"Échauffement"});s2.push({k:"rest",n:"Repos",d:15,h:i<2?"Ensuite : suspension pieds au sol":"Ensuite : planche"})}
+    for(var j=0;j<pl.n;j++){s2.push({k:"work",n:"Suspension sur la planche",d:10,h:pl.c+" Prise semi arquée ou main ouverte.",tag:"Planche "+(j+1)+" sur "+pl.n});if(j<pl.n-1)s2.push({k:"rest",n:"Repos",d:50,h:"Secoue les mains, respire."})}
+    s2.push({k:"rest",n:"Transition",d:15,h:"Installe le tapis pour la mobilité."});
+    for(var k=0;k<MOB.length;k++)s2.push({k:"work",n:MOB[k][0],d:MOB[k][1],h:MOB[k][2],tag:"Mobilité"});
+    o={t:"mai",kind:"Maison",titre:"Maison 2 : planche et mobilité",duree:Math.round(sumSegs(s2)/60)+" min",obj:"Renforcer doigts et tendons très progressivement, puis entretenir la mobilité.",
+       ech:["1 min d'ouverture et fermeture des mains","3 suspensions de 15 s pieds au sol sur les plus grosses prises"],
+       corps:[pl.n+" suspensions de 10 s, 50 s de repos, sur la grosse réglette de la YY Vertical",pl.c,"Prise semi arquée ou main ouverte, jamais arquée. Intensité 6 sur 10.","Aucune douleur tolérée : à la moindre gêne dans un doigt, arrête la planche et passe à la mobilité."],
+       ret:MOB.map(function(x){return x[0]+" ("+x[1]+" s)"}),segs:s2,mat:"Planche YY Vertical, marchepied, élastique, tapis"};
+  } else if(key==="m3"){
+    var s3=circuit(M3E,2,45,15);
+    o={t:"mai",kind:"Maison",titre:"Maison 3 : mobilité et gainage doux",duree:Math.round(sumSegs(s3)/60)+" min",obj:"Récupérer en bougeant. C'est aussi la séance de remplacement les jours de grosse fatigue.",
+       ech:["Le premier exercice se fait à intensité modérée"],corps:["2 tours de 7 exercices, 45 s de travail et 15 s de repos"],exos:M3E,
+       ret:["Quelques respirations lentes, allongé"],segs:s3,mat:"Tapis"};
+  } else {
+    o={t:"rep",kind:"Repos",titre:"Repos complet",duree:"Toute la journée",obj:"Laisser les tendons et les muscles se reconstruire. Le progrès se fait pendant le repos.",
+       corps:["Pas de séance aujourd'hui","Une marche tranquille est bienvenue","Bien boire et soigner le sommeil"]};
+  }
+  o.key=key;
+  return o;
+}
+
+
+
+
+
+/* ---------- Cartes : [famille, rareté, nom, pays, région, altitude, scène, légende, anecdote] ---------- */
+var RAW=[
+[
+"foret",
+0,
+"Bois de Païolive",
+"France",
+"Ardèche",
+"",
+"sol chenes blocs:3",
+"Ses rochers sculptés par l'eau prennent des formes d'ours, de tortue ou de lion. En patois, on l'appelle le bois des fées.",
+"C'est un labyrinthe de calcaire d'environ 1 600 hectares, où les chênes verts poussent entre les rochers."
+],
+[
+"foret",
+0,
+"Chaos de Huelgoat",
+"France",
+"Finistère, monts d'Arrée",
+"",
+"sol chenes riviere blocs:4",
+"Furieux qu'on ne lui ait servi qu'une bouillie de blé noir, Gargantua aurait jeté ces blocs de granit sur le village pour se venger.",
+"La Roche Tremblante, un bloc de plus de 100 tonnes, oscille quand on pousse au bon endroit."
+],
+[
+"foret",
+0,
+"Forêt Noire",
+"Allemagne",
+"Bade Wurtemberg",
+"",
+"sol sapins:dense brume",
+"Si sombre que la lumière y entre à peine, elle a nourri les contes de loups, de charbonniers et de sorcières.",
+"Ses villages ont fait de l'horloge à coucou une spécialité dès le 18e siècle, et le Danube y prend sa source."
+],
+[
+"foret",
+0,
+"Tombeau de Merlin",
+"France",
+"Brocéliande, Ille et Vilaine",
+"",
+"sol chenes menhirs:2",
+"Ces deux pierres seraient la tombe de l'enchanteur. On y glisse des voeux écrits sur de petits papiers.",
+"Ce sont en réalité les restes d'un monument néolithique, bien plus ancien que les récits arthuriens."
+],
+[
+"foret",
+0,
+"Arbre d'Or",
+"France",
+"Brocéliande, Val sans Retour",
+"",
+"sol:lande arbreOr",
+"Dressé à l'entrée du Val sans Retour, il veille sur une forêt que l'on avait crue perdue.",
+"Après un grand incendie en 1990, l'artiste François Davin a couvert d'or un châtaignier mort pour symboliser la renaissance de la forêt."
+],
+[
+"foret",
+0,
+"Forêt de Białowieża",
+"Pologne et Biélorussie",
+"Podlachie en Pologne, Brest et Grodno en Biélorussie",
+"",
+"sol sapins chenes:dense",
+"Les bisons d'Europe, disparus de la nature, y ont été réintroduits et y vivent librement.",
+"C'est l'un des derniers morceaux de la grande forêt primaire qui couvrait l'Europe, classé à l'UNESCO."
+],
+[
+"foret",
+1,
+"Fontaine de Barenton",
+"France",
+"Brocéliande",
+"",
+"sol chenes source eclair",
+"Verse son eau sur la pierre voisine et une tempête se lève. C'est près d'elle que Merlin rencontra Viviane.",
+"Son eau fait des bulles par moments : on dit dans le pays que la fontaine bout, même quand l'eau est glacée."
+],
+[
+"foret",
+1,
+"Forêt de Sherwood",
+"Royaume Uni",
+"Angleterre, Nottinghamshire",
+"",
+"sol chenes chene:big",
+"Le repaire de Robin des Bois et de sa bande, qui volaient les riches pour donner aux pauvres.",
+"Le Major Oak, un chêne de près de mille ans soutenu par des béquilles, aurait été leur cachette."
+],
+[
+"foret",
+1,
+"Forêt de Fontainebleau",
+"France",
+"Seine et Marne",
+"",
+"sol pins blocs:3",
+"Des milliers de blocs de grès sous les pins : le berceau mondial de l'escalade de bloc.",
+"Dès la fin du 19e siècle, les alpinistes parisiens venaient s'y entraîner avant les Alpes. Les grimpeurs l'appellent simplement Bleau."
+],
+[
+"foret",
+2,
+"Val sans Retour",
+"France",
+"Brocéliande",
+"",
+"sol chenes:dense lac brume",
+"La fée Morgane y piégeait les amants infidèles. Seul Lancelot, fidèle à Guenièvre, put rompre le sortilège.",
+"Le sentier du val longe le Miroir aux Fées puis grimpe sur des crêtes de schiste rouge."
+],
+[
+"foret",
+2,
+"Bois sacré de Bomarzo",
+"Italie",
+"Latium",
+"",
+"sol chenes ogre",
+"Un bois peuplé de géants, d'ogres, d'un éléphant et d'une maison penchée, tous sculptés dans la roche.",
+"Le prince Orsini l'a fait créer au 16e siècle après la mort de sa femme. Sur la bouche de l'ogre, on lit : toute pensée s'envole."
+],
+[
+"foret",
+3,
+"Forêt de Brocéliande",
+"France",
+"Ille et Vilaine",
+"",
+"sol chenes:dense chateau lac etoiles",
+"Royaume des fées et de la Table ronde. Viviane y retient Merlin dans une prison d'air pour l'éternité.",
+"On l'identifie à la forêt de Paimpont. Au 12e siècle, le poète Wace raconte y être allé chercher les fées, sans en voir une seule."
+],
+[
+"mont",
+0,
+"Pic du Canigou",
+"France",
+"Pyrénées Orientales",
+"2784 m",
+"pic:snow croix",
+"Montagne sacrée des Catalans. Chaque 23 juin, on y allume la flamme de la Saint Jean, redescendue de village en village.",
+"On l'a longtemps cru le plus haut sommet des Pyrénées, tant il domine la plaine du Roussillon."
+],
+[
+"mont",
+0,
+"Calanques",
+"France",
+"Marseille, Bouches du Rhône",
+"",
+"mer falaise:low",
+"Des falaises de calcaire blanc plongent dans une eau turquoise, entre Marseille et Cassis.",
+"La grotte Cosquer, ornée il y a plus de 30 000 ans, s'ouvre sous la mer : son entrée est à 37 m de profondeur."
+],
+[
+"mont",
+0,
+"Sainte Victoire",
+"France",
+"Provence",
+"1011 m",
+"dent:long croix",
+"Le général romain Marius y aurait battu les Teutons, d'où son nom de victoire.",
+"Cézanne l'a peinte plus de quatre vingts fois depuis les environs d'Aix."
+],
+[
+"mont",
+0,
+"Dentelles de Montmirail",
+"France",
+"Vaucluse",
+"734 m",
+"aiguilles:5 vignes",
+"Des lames de calcaire découpées comme de la dentelle, dressées au dessus des vignes de Gigondas.",
+"Les couches de calcaire, d'abord horizontales, ont été redressées à la verticale par le plissement pyrénéo-provençal puis par la remontée de sel venu des profondeurs."
+],
+[
+"mont",
+0,
+"Gorges du Verdon",
+"France",
+"Alpes de Haute Provence",
+"",
+"gorge",
+"Des parois de plusieurs centaines de mètres au dessus d'une rivière vert jade.",
+"Il a fallu attendre 1905 pour que l'explorateur Édouard Alfred Martel parcoure le fond des gorges en entier."
+],
+[
+"mont",
+1,
+"Céüse",
+"France",
+"Hautes Alpes",
+"2016 m",
+"falaise:band",
+"Un bandeau de calcaire bleu et gris, cité parmi les plus belles falaises du monde.",
+"En 2001, Chris Sharma y réussit Biographie, l'une des toutes premières voies du niveau 9a+."
+],
+[
+"mont",
+1,
+"Montségur",
+"France",
+"Ariège",
+"1207 m",
+"puy chateau",
+"Dernier refuge des cathares. Certains y cherchent encore le Graal, qu'ils auraient caché avant la chute.",
+"En 1244, après un long siège, plus de deux cents cathares refusèrent de renier leur foi et furent brûlés au pied du pog."
+],
+[
+"mont",
+1,
+"Mont Aiguille",
+"France",
+"Isère, Vercors",
+"2087 m",
+"table",
+"Longtemps dit inaccessible, il comptait parmi les sept merveilles du Dauphiné.",
+"En 1492, Antoine de Ville l'a gravi sur ordre du roi Charles VIII, avec échelles et cordes : on y voit souvent la naissance de l'alpinisme."
+],
+[
+"mont",
+1,
+"Les Météores",
+"Grèce",
+"Thessalie",
+"",
+"tours:3 monastere",
+"Des monastères posés au sommet de piliers de roche, comme suspendus entre ciel et terre.",
+"Pendant des siècles, moines et vivres y montaient dans des filets hissés par un treuil."
+],
+[
+"mont",
+2,
+"Brèche de Roland",
+"France et Espagne",
+"Pyrénées, cirque de Gavarnie",
+"2807 m",
+"breche",
+"Blessé à mort, Roland aurait frappé la roche pour briser son épée Durandal : il y ouvrit cette brèche.",
+"Large d'environ 40 m, elle marque la frontière entre la France et l'Espagne."
+],
+[
+"mont",
+2,
+"El Capitan",
+"États Unis",
+"Californie, Yosemite",
+"2307 m",
+"pins falaise:big",
+"Un monolithe de granit de près de 900 m, scène des plus grandes légendes de la grimpe.",
+"En 2017, Alex Honnold l'a gravi sans corde par la voie Freerider, une ascension racontée dans le film Free Solo."
+],
+[
+"mont",
+3,
+"Mont Olympe",
+"Grèce",
+"Thessalie et Macédoine",
+"2918 m",
+"nuages massif eclair temple:haut",
+"Demeure des douze dieux. Zeus y lance la foudre depuis le plus haut sommet de Grèce.",
+"Son point culminant, le Mytikas, n'a été atteint qu'en 1913, par deux Suisses et un chasseur grec."
+],
+[
+"eau",
+0,
+"Baie des Trépassés",
+"France",
+"Finistère, cap Sizun",
+"",
+"mer brume falaise:low",
+"On dit que les âmes des noyés y reviennent, portées par le courant.",
+"Une tradition veut qu'on y embarquait les morts vers l'île de Sein. La ville d'Ys serait engloutie au large."
+],
+[
+"eau",
+0,
+"Gouffre de Padirac",
+"France",
+"Lot",
+"103 m de fond",
+"sol gouffre barque",
+"Le diable aurait ouvert ce trou d'un coup de sabot pour arrêter saint Martin, qui le franchit d'un bond sur sa mule.",
+"Exploré en 1889 par Martel, il cache une rivière souterraine que l'on parcourt aujourd'hui en barque."
+],
+[
+"eau",
+0,
+"Miroir aux Fées",
+"France",
+"Brocéliande",
+"",
+"sol chenes lac etoiles",
+"Un étang si calme que les fées venaient s'y mirer à l'aube.",
+"Il marque le départ du sentier du Val sans Retour, l'une des balades les plus courues de Brocéliande."
+],
+[
+"eau",
+0,
+"Lac Pavin",
+"France",
+"Puy de Dôme, Auvergne",
+"92 m de fond",
+"sapins volcan:lac",
+"Jeter une pierre dans le lac réveillerait l'orage. Son nom viendrait du latin pavens, épouvantable.",
+"C'est un lac de cratère presque rond, dont l'eau du fond ne se mélange jamais à celle de la surface."
+],
+[
+"eau",
+0,
+"Pointe du Raz",
+"France",
+"Finistère",
+"",
+"mer falaise:low phare",
+"Les marins disaient que nul ne passe le Raz sans peur ou sans mal.",
+"Le phare de la Vieille, planté au milieu des courants, s'allume depuis la fin du 19e siècle."
+],
+[
+"eau",
+1,
+"Loch Ness",
+"Royaume Uni",
+"Écosse, Highlands",
+"230 m de fond",
+"montagnes lac:grand chateau monstre",
+"Ses eaux noires de tourbe cacheraient Nessie, guettée depuis 1933.",
+"La célèbre photo de 1934 était un canular : un faux cou monté sur un sous marin jouet."
+],
+[
+"eau",
+1,
+"Mont Saint Michel",
+"France",
+"Normandie",
+"",
+"mer montAbbaye",
+"L'archange Michel serait apparu en rêve à l'évêque Aubert pour lui demander de bâtir un sanctuaire.",
+"Les marées de la baie comptent parmi les plus fortes d'Europe : la mer y remonte très vite."
+],
+[
+"eau",
+1,
+"Grotte de Fingal",
+"Royaume Uni",
+"Écosse, île de Staffa",
+"",
+"mer grotte:basalte",
+"Une cathédrale de colonnes de basalte où résonne la mer. Elle porte le nom du géant Fingal des légendes gaéliques.",
+"Après l'avoir visitée en 1829, Mendelssohn composa l'ouverture Les Hébrides."
+],
+[
+"eau",
+2,
+"Baie de Douarnenez",
+"France",
+"Finistère",
+"",
+"mer villeEngloutie cloche",
+"La ville d'Ys y serait engloutie depuis que la princesse Dahut ouvrit les portes de la digue au diable.",
+"Selon la légende, quand Paris sera engloutie, Ys renaîtra : Par Is, la ville pareille à Ys."
+],
+[
+"eau",
+2,
+"Pamukkale",
+"Turquie",
+"Denizli",
+"",
+"sol soleil source temple:ruine",
+"Des vasques de calcaire blanc remplies d'eau chaude, surnommées le château de coton. Les Romains y bâtirent la ville thermale de Hiérapolis.",
+"On peut encore nager dans la piscine antique, au milieu de colonnes tombées lors d'un séisme."
+],
+[
+"eau",
+2,
+"Glastonbury Tor",
+"Royaume Uni",
+"Angleterre, Somerset",
+"158 m",
+"lac:grand colline chapelle brume",
+"Autrefois entourée de marais, cette colline serait l'île d'Avalon, où Arthur fut emporté.",
+"En 1191, les moines de l'abbaye voisine affirmèrent avoir retrouvé dans leur cimetière la tombe d'Arthur et de Guenièvre."
+],
+[
+"eau",
+3,
+"Santorin",
+"Grèce",
+"Cyclades",
+"",
+"mer falaise:low village",
+"Une éruption gigantesque a englouti le centre de l'île il y a environ 3600 ans. Beaucoup y voient l'origine du mythe de l'Atlantide.",
+"Sous les cendres, la ville minoenne d'Akrotiri a été retrouvée presque intacte, comme une Pompéi grecque."
+],
+[
+"foret",
+0,
+"Chêne de Guillotin",
+"France",
+"Brocéliande",
+"",
+"sol:lande chene:big",
+"Un chêne creux de près de mille ans. L'abbé Guillotin s'y serait caché pendant la Révolution.",
+"Son tronc mesure près de 10 m de tour : c'est l'un des plus vieux chênes de France."
+],
+[
+"foret",
+0,
+"Hotié de Viviane",
+"France",
+"Brocéliande",
+"",
+"sol:lande dolmen",
+"La légende en fait la maison de Viviane, la Dame du Lac.",
+"C'est une tombe néolithique d'environ 5000 ans, dressée sur une lande de schiste."
+],
+[
+"foret",
+0,
+"Futaie des Clos",
+"France",
+"Sarthe, forêt de Bercé",
+"",
+"sol chenes:tall",
+"Des chênes droits comme des colonnes, plantés il y a plus de trois siècles.",
+"Leur bois, d'une grande finesse, est recherché pour les tonneaux des grands vins."
+],
+[
+"foret",
+0,
+"Futaie Colbert",
+"France",
+"Allier, forêt de Tronçais",
+"",
+"sol chenes:tall",
+"Ces chênes auraient été semés sur ordre de Colbert pour bâtir les vaisseaux de la marine royale.",
+"Tronçais compte parmi les plus belles chênaies d'Europe, avec des arbres de plus de 40 m."
+],
+[
+"foret",
+0,
+"Forêt de Saoû",
+"France",
+"Drôme",
+"",
+"cirque chenes:dense",
+"Une forêt enfermée dans un immense vaisseau de calcaire, comme un monde à part.",
+"Ce relief, appelé synclinal perché, est l'un des plus spectaculaires d'Europe. Les Trois Becs en sont les sommets."
+],
+[
+"foret",
+0,
+"Lande de Cojoux",
+"France",
+"Ille et Vilaine, Saint Just",
+"",
+"sol:lande menhirs:5",
+"Des demoiselles auraient été changées en pierre pour avoir dansé au lieu d'aller à la messe.",
+"C'est l'un des plus grands ensembles de mégalithes de Bretagne après Carnac."
+],
+[
+"foret",
+0,
+"Rocher de Dabo",
+"France",
+"Moselle",
+"",
+"sol sapins rocher chapelle",
+"Un château s'y dressait, rasé sur ordre de Louis XIV. Une chapelle l'a remplacé.",
+"Par temps clair, on voit depuis le rocher une grande partie des Vosges et de la plaine d'Alsace."
+],
+[
+"foret",
+0,
+"Forêt d'Iraty",
+"France et Espagne",
+"Pays basque",
+"",
+"sol montagnes chenes:dense brume",
+"Domaine du Basajaun, le seigneur sauvage des bois, couvert de poils, qui protège les troupeaux.",
+"C'est l'une des plus grandes hêtraies d'Europe, à cheval sur la frontière."
+],
+[
+"foret",
+0,
+"Forêt de Dean",
+"Royaume Uni",
+"Angleterre, Gloucestershire",
+"",
+"sol chenes grotte:petite",
+"Ses grottes et ses vieux chênes moussus ont inspiré bien des décors de récits fantastiques.",
+"Ses habitants, les free miners, ont depuis le Moyen Âge le droit d'y creuser leur propre mine."
+],
+[
+"foret",
+0,
+"Forêt de Teutobourg",
+"Allemagne",
+"Rhénanie du Nord Westphalie et Basse Saxe",
+"",
+"sol sapins:dense brume",
+"Trois légions romaines y disparurent en l'an 9. Auguste aurait crié : Varus, rends moi mes légions !",
+"Le champ de bataille a été retrouvé en 1987 grâce à un officier britannique muni d'un détecteur de métaux."
+],
+[
+"foret",
+0,
+"Forêt des Ardennes",
+"Belgique et France",
+"Ardennes",
+"",
+"sol chenes rocher",
+"Le cheval magique Bayard y portait les quatre fils Aymon, poursuivis par Charlemagne.",
+"À Dinant, un rocher fendu s'appelle la Roche à Bayard : le cheval l'aurait ouvert d'un coup de sabot."
+],
+[
+"foret",
+0,
+"Hallerbos",
+"Belgique",
+"Brabant flamand",
+"",
+"sol:fleurs chenes:tall",
+"Chaque printemps, un tapis de jacinthes sauvages peint le sol en bleu sous les hêtres.",
+"La floraison ne dure que deux ou trois semaines, vers la mi avril."
+],
+[
+"foret",
+0,
+"Wistman's Wood",
+"Royaume Uni",
+"Angleterre, Dartmoor",
+"",
+"sol:lande blocs:3 tordus",
+"On dit que la meute du diable chasse la nuit entre ces chênes moussus.",
+"Ces chênes nains poussent entre des blocs de granit couverts de mousse, au milieu de la lande."
+],
+[
+"foret",
+0,
+"Gorges d'Apremont",
+"France",
+"Fontainebleau",
+"",
+"sol:sable pins blocs:4",
+"Un chaos de grès sous les pins, sculpté par des millénaires de pluie.",
+"Les peintres de Barbizon, le village voisin, venaient y peindre la nature sauvage."
+],
+[
+"foret",
+0,
+"Franchard",
+"France",
+"Fontainebleau",
+"",
+"sol:sable pins chapelle blocs:3",
+"Des ermites y vivaient au Moyen Âge, au milieu des rochers et de la bruyère.",
+"Son ermitage fut un lieu de pèlerinage avant de devenir un grand site de bloc."
+],
+[
+"foret",
+0,
+"Rocher Canon",
+"France",
+"Fontainebleau",
+"",
+"sol:sable pins blocs:3",
+"Des blocs ronds posés dans le sable blanc, parfaits pour apprendre à poser les pieds.",
+"Le sable de Fontainebleau est si pur qu'on l'utilise pour fabriquer du verre."
+],
+[
+"foret",
+0,
+"Dame Jouanne",
+"France",
+"Fontainebleau, Larchant",
+"",
+"sol:sable pins blocs:big",
+"Le massif aux plus hauts blocs de la forêt, où l'on grimpe le coeur battant.",
+"Ses grands blocs ont longtemps servi d'entraînement aux alpinistes avant leurs expéditions."
+],
+[
+"foret",
+0,
+"Forêt de la Sainte Baume",
+"France",
+"Var",
+"",
+"sol falaise:grotte chenes",
+"Marie Madeleine aurait passé ses dernières années dans une grotte de la falaise.",
+"Sa hêtraie, très rare aussi au sud, est protégée depuis des siècles comme une forêt sacrée."
+],
+[
+"foret",
+0,
+"Forêt tordue de Gryfino",
+"Pologne",
+"Poméranie occidentale",
+"",
+"sol tordus",
+"Des centaines de pins tous courbés à la base, dans le même sens. Personne ne sait vraiment pourquoi.",
+"Plantés vers 1930, ils auraient peut être été pliés par des artisans pour fabriquer meubles ou coques de bateaux."
+],
+[
+"foret",
+1,
+"Bas Cuvier",
+"France",
+"Fontainebleau",
+"",
+"sol:sable pins blocs:3 fleches",
+"Le berceau du bloc moderne : ses circuits ont fait école dans le monde entier.",
+"C'est à Bleau que sont nés les circuits balisés de flèches de couleur, du jaune au noir."
+],
+[
+"foret",
+1,
+"Éléphant de Larchant",
+"France",
+"Fontainebleau, Larchant",
+"",
+"sol:sable pins elephant",
+"Un bloc de grès en forme d'éléphant, qui semble avancer entre les pins.",
+"Victime de son succès auprès des grimpeurs, il est aujourd'hui interdit d'escalade pour freiner l'érosion du sable qui le soutient."
+],
+[
+"foret",
+1,
+"Château de Comper",
+"France",
+"Brocéliande",
+"",
+"sol chenes lac chateau",
+"Viviane y serait née, et c'est sous le lac voisin qu'elle éleva Lancelot.",
+"Le château abrite aujourd'hui le Centre de l'Imaginaire Arthurien."
+],
+[
+"foret",
+1,
+"If de Fortingall",
+"Royaume Uni",
+"Écosse, Perthshire",
+"",
+"sol if",
+"Une légende locale raconte que Ponce Pilate serait né à son ombre.",
+"Son âge est estimé à plusieurs milliers d'années : c'est l'un des plus vieux arbres d'Europe."
+],
+[
+"foret",
+1,
+"Arbre du Ténéré",
+"Niger",
+"Sahara",
+"",
+"sol:sable soleil arbreSeul",
+"Le seul arbre à des centaines de kilomètres à la ronde, repère sacré des caravanes.",
+"Un camion l'a renversé en 1973. Ses restes sont exposés au musée national de Niamey."
+],
+[
+"foret",
+1,
+"Général Sherman",
+"États Unis",
+"Californie, Sequoia",
+"",
+"sol sequoia",
+"Le plus grand arbre du monde par son volume, un séquoia géant de plus de 80 m.",
+"Il porte le nom d'un général de la guerre de Sécession et aurait plus de 2000 ans."
+],
+[
+"foret",
+1,
+"Bambouseraie d'Arashiyama",
+"Japon",
+"Kyoto",
+"",
+"sol bambous",
+"Des bambous si hauts que la lumière y devient verte et que le vent les fait chanter.",
+"Le Japon a classé le son de cette forêt parmi ses cent paysages sonores à préserver."
+],
+[
+"foret",
+1,
+"Forêt de Hoia Baciu",
+"Roumanie",
+"Transylvanie",
+"",
+"sol brume tordus etoiles",
+"Réputée hantée, on y raconte des disparitions et des lueurs étranges.",
+"Une clairière presque ronde, où rien ne pousse, intrigue les visiteurs."
+],
+[
+"foret",
+1,
+"Chêne de Guernica",
+"Espagne",
+"Pays basque",
+"",
+"sol temple chene",
+"Sous cet arbre, les seigneurs de Biscaye juraient de respecter les libertés des Basques.",
+"Le chêne actuel descend de l'ancien, dont le vieux tronc est conservé sous un petit temple."
+],
+[
+"foret",
+1,
+"Oracle de Dodone",
+"Grèce",
+"Épire",
+"",
+"sol montagnes chene:big temple:ruine",
+"Zeus y parlait à travers le bruissement des feuilles d'un chêne sacré.",
+"C'est le plus ancien oracle grec connu, déjà cité par Homère."
+],
+[
+"foret",
+2,
+"Bois sacré de Nemi",
+"Italie",
+"Latium",
+"",
+"sol chenes lac temple",
+"Le prêtre de Diane, le roi du bois, régnait jusqu'à ce qu'un rival le tue pour prendre sa place.",
+"Deux immenses navires de l'empereur Caligula ont été retrouvés au fond du lac voisin."
+],
+[
+"foret",
+2,
+"Mont Kurama",
+"Japon",
+"Kyoto",
+"",
+"sol montagnes sapins torii",
+"Le roi des tengu y aurait enseigné le sabre au jeune Yoshitsune.",
+"Les racines des cèdres affleurent tant sur un sentier qu'on l'appelle le chemin des racines."
+],
+[
+"foret",
+2,
+"Épine de Glastonbury",
+"Royaume Uni",
+"Angleterre, Somerset",
+"",
+"sol colline chapelle aubepine",
+"Joseph d'Arimathie aurait planté son bâton dans la colline : il aurait fleuri en aubépine.",
+"Cette aubépine fleurit deux fois par an, dont une fois vers Noël. Une branche est envoyée chaque année au souverain."
+],
+[
+"foret",
+2,
+"Arbre aux fées de Domrémy",
+"France",
+"Vosges",
+"",
+"sol chene:big etoiles",
+"Les enfants dansaient autour de ce hêtre pour les fées. Jeanne d'Arc y venait enfant.",
+"Lors de son procès, ses juges l'ont interrogée sur cet arbre pour l'accuser de sorcellerie."
+],
+[
+"foret",
+2,
+"Takizakura",
+"Japon",
+"Fukushima, Miharu",
+"",
+"sol cerisier",
+"Son nom signifie cerisier cascade : ses branches fleuries tombent comme une chute d'eau.",
+"Âgé de plus de mille ans, il est l'un des trois grands cerisiers du Japon."
+],
+[
+"foret",
+2,
+"Sundarbans",
+"Inde et Bangladesh",
+"Delta du Gange",
+"",
+"riviere chenes:dense brume",
+"La plus grande mangrove du monde, royaume du tigre du Bengale, que les habitants placent sous la protection de la déesse Bonbibi.",
+"Les tigres y nagent d'île en île : ce sont parmi les seuls au monde à vivre dans une mangrove."
+],
+[
+"foret",
+3,
+"Arbre de la Bodhi",
+"Inde",
+"Bihar, Bodh Gaya",
+"",
+"sol temple chene:big etoiles",
+"C'est sous un figuier de cette lignée, à Bodh Gaya, que le Bouddha aurait atteint l'Éveil.",
+"L'arbre actuel descend de l'original par bouture. Une autre bouture, plantée au Sri Lanka il y a plus de 2000 ans, vit toujours."
+],
+[
+"foret",
+3,
+"Hyperion",
+"États Unis",
+"Californie, parc national de Redwood",
+"116 m",
+"sol sequoia brume",
+"Le plus grand arbre vivant connu au monde, un séquoia à feuilles d'if.",
+"Découvert en 2006, son emplacement est tenu secret et il est interdit de s'en approcher, pour le protéger."
+],
+[
+"foret",
+3,
+"Cèdres de Dieu",
+"Liban",
+"Mont Liban, Bcharré",
+"",
+"sol montagnes cedres",
+"Les cèdres du Liban étaient gardés par le géant Humbaba dans l'épopée de Gilgamesh, la plus vieille connue.",
+"Ce bosquet de cèdres millénaires est classé à l'UNESCO, et le cèdre figure au centre du drapeau libanais."
+],
+[
+"foret",
+4,
+"Arcadie",
+"Grèce",
+"Péloponnèse",
+"",
+"sol soleil colline chenes temple:ruine",
+"Une région de montagnes et de bergers que les poètes antiques ont faite pays de Pan et du bonheur simple.",
+"Le peintre Poussin a représenté des bergers déchiffrant sur un tombeau : Et in Arcadia ego, moi aussi je suis en Arcadie."
+],
+[
+"foret",
+4,
+"Tāne Mahuta",
+"Nouvelle Zélande",
+"Northland, forêt de Waipoua",
+"",
+"sol chenes:dense chene:big",
+"Son nom signifie seigneur de la forêt : pour les Maoris, il incarne le dieu Tāne, qui sépara le Ciel de la Terre.",
+"Ce kauri géant aurait entre 1250 et 2500 ans, et son tronc mesure plus de 15 m de tour."
+],
+[
+"foret",
+4,
+"Forêt de Yakushima",
+"Japon",
+"Kagoshima, île de Yakushima",
+"",
+"sol brume cedres",
+"Ses cèdres millénaires couverts de mousse ont inspiré la forêt du film Princesse Mononoké.",
+"Le plus célèbre, le Jōmon Sugi, aurait au moins 2000 ans."
+],
+[
+"mont",
+0,
+"Mont Ventoux",
+"France",
+"Vaucluse",
+"1910 m",
+"pic:bald",
+"Le Géant de Provence, battu par un mistral qui dépasse parfois 200 km/h.",
+"Le poète Pétrarque raconta son ascension en 1336, et le Tour de France y écrit régulièrement sa légende."
+],
+[
+"mont",
+0,
+"Puy de Dôme",
+"France",
+"Auvergne",
+"1465 m",
+"puy temple:haut",
+"Les Gallo Romains bâtirent un grand temple à Mercure au sommet du volcan.",
+"En 1648, Pascal y fit mesurer la pression de l'air pour prouver qu'elle baisse avec l'altitude."
+],
+[
+"mont",
+0,
+"Pic Saint Loup",
+"France",
+"Hérault",
+"658 m",
+"vignes dent croix",
+"Trois frères amoureux de la même femme devinrent ermites sur trois sommets. Loup fut le dernier à s'éteindre.",
+"Ses falaises attirent les grimpeurs, et les vignes à son pied donnent un vin réputé."
+],
+[
+"mont",
+0,
+"Buoux",
+"France",
+"Luberon",
+"",
+"sol falaise",
+"Une falaise ocre où, dans les années 80, les grimpeurs repoussèrent les limites du possible.",
+"En 1985, Antoine Le Menestrel y réussit La Rose et le Vampire, l'une des voies les plus dures du monde à l'époque."
+],
+[
+"mont",
+0,
+"Saussois",
+"France",
+"Yonne",
+"",
+"sol riviere falaise:low",
+"Une petite falaise au bord de l'Yonne, salle de classe des grimpeurs parisiens.",
+"Facile d'accès depuis Paris, elle a vu passer des générations de grimpeurs de la capitale."
+],
+[
+"mont",
+0,
+"Presles",
+"France",
+"Isère, Vercors",
+"",
+"sol chenes falaise:band",
+"Un grand mur de calcaire au dessus de la vallée de l'Isère, pour ceux qui aiment le vide.",
+"Ses grandes voies dominent la vallée de plusieurs centaines de mètres."
+],
+[
+"mont",
+0,
+"Orpierre",
+"France",
+"Hautes Alpes, Baronnies",
+"",
+"sol falaise village",
+"Un village provençal entouré de falaises ensoleillées, idéal pour grimper en famille.",
+"Le village, blotti sous ses rochers, est un ancien bourg fortifié."
+],
+[
+"mont",
+0,
+"Cirque de Gavarnie",
+"France",
+"Hautes Pyrénées",
+"",
+"cirque cascade",
+"Victor Hugo l'a comparé à un colisée bâti par la nature.",
+"Sa grande cascade, haute d'environ 420 m, est l'une des plus hautes d'Europe."
+],
+[
+"mont",
+0,
+"Aiguilles de Bavella",
+"France",
+"Corse du Sud",
+"",
+"sol aiguilles:5 pins",
+"Des tours de granit rose déchiquetées, au dessus d'une forêt de pins laricio.",
+"Le GR20, réputé parmi les sentiers les plus durs d'Europe, passe à leur pied."
+],
+[
+"mont",
+0,
+"Siurana",
+"Espagne",
+"Catalogne",
+"",
+"sol falaise village",
+"La dernière reine maure se serait jetée à cheval de la falaise plutôt que de se rendre.",
+"Le village perché fut le dernier bastion musulman de Catalogne, tombé en 1153."
+],
+[
+"mont",
+0,
+"Margalef",
+"Espagne",
+"Catalogne",
+"",
+"sol falaise:trous",
+"Un rocher criblé de trous comme une éponge, paradis des grimpeurs à doigts.",
+"Ses trous viennent d'un conglomérat, une roche de galets cimentés dont certains se sont détachés."
+],
+[
+"mont",
+0,
+"Arco",
+"Italie",
+"Trentin, lac de Garde",
+"",
+"lac:grand falaise chateau",
+"Au bord du lac de Garde, une petite ville devenue capitale de la grimpe.",
+"Depuis 1987, on y dispute le Rock Master, une compétition devenue légendaire."
+],
+[
+"mont",
+0,
+"Dent de Crolles",
+"France",
+"Isère, Chartreuse",
+"2062 m",
+"sol chenes dent",
+"Une dent de calcaire qui veille sur Grenoble et le Grésivaudan.",
+"Elle cache un réseau de grottes de plus de 60 km, longtemps l'un des plus profonds du monde."
+],
+[
+"mont",
+0,
+"Albarracín",
+"Espagne",
+"Aragon",
+"",
+"sol pins blocs:3 chateau",
+"Des blocs de grès rouge sous les pins, autour d'une ville médiévale perchée.",
+"Les abris sous roche des environs gardent des peintures rupestres vieilles de plusieurs milliers d'années."
+],
+[
+"mont",
+0,
+"Stanage",
+"Royaume Uni",
+"Angleterre, Peak District",
+"",
+"sol:lande falaise:long",
+"Un long bord de gritstone grimpé depuis plus d'un siècle, sans jamais planter de pitons.",
+"Tout près, une cavité porte le nom de grotte de Robin des Bois."
+],
+[
+"mont",
+0,
+"Cirque de Mourèze",
+"France",
+"Hérault",
+"",
+"sol chenes blocs:big",
+"Un labyrinthe de rochers aux formes de bêtes et de géants.",
+"Ces rochers sont de la dolomie, une roche que la pluie creuse en formes étranges."
+],
+[
+"mont",
+0,
+"Gorges du Tarn",
+"France",
+"Lozère",
+"",
+"gorge barque",
+"Des falaises au dessus d'une rivière verte, où chaque méandre cache un secteur de grimpe.",
+"Les bateliers de La Malène font descendre les visiteurs en barque au fil des gorges."
+],
+[
+"mont",
+0,
+"Rocher de la Baume",
+"France",
+"Sisteron, Alpes de Haute Provence",
+"",
+"sol riviere falaise:strates",
+"Des couches de roche dressées à la verticale, face à la citadelle.",
+"Napoléon est passé à Sisteron en 1815, sur la route de son retour de l'île d'Elbe."
+],
+[
+"mont",
+0,
+"Annot",
+"France",
+"Alpes de Haute Provence",
+"",
+"sol chenes blocs:4",
+"Des blocs éboulés sous les châtaigniers, avec des couloirs où l'on se faufile.",
+"Le petit train des Pignes, qui relie Nice à Digne, passe tout près."
+],
+[
+"mont",
+0,
+"Pic du Midi d'Ossau",
+"France",
+"Pyrénées Atlantiques",
+"2884 m",
+"lac double",
+"Un ancien volcan à deux pointes, que les Béarnais surnomment Jean Pierre.",
+"Sa silhouette en dent est l'emblème de la vallée d'Ossau."
+],
+[
+"mont",
+1,
+"Pain de Sucre",
+"Brésil",
+"Rio de Janeiro",
+"396 m",
+"mer sucre",
+"Un dôme de granit au dessus de la baie de Guanabara.",
+"Son téléphérique, inauguré en 1912, est l'un des plus anciens du monde."
+],
+[
+"mont",
+1,
+"Kalymnos",
+"Grèce",
+"Dodécanèse",
+"",
+"mer falaise:grotte",
+"Une île de pêcheurs d'éponges où l'on grimpe des stalactites au dessus de la mer.",
+"La grimpe y est née à la fin des années 1990, quand un grimpeur italien a découvert ses falaises."
+],
+[
+"mont",
+1,
+"Frankenjura",
+"Allemagne",
+"Bavière",
+"",
+"sol sapins falaise pointRouge",
+"Kurt Albert peignait un point rouge au pied des voies réussies sans tirer sur le matériel.",
+"Ce point rouge, rotpunkt, est devenu le mot des grimpeurs du monde entier pour une voie enchaînée en libre."
+],
+[
+"mont",
+1,
+"Hampi",
+"Inde",
+"Karnataka",
+"",
+"sol:sable soleil blocs:big temple",
+"Selon le Ramayana, c'était Kishkindha, le royaume des singes du roi Sugriva et de son fidèle Hanuman.",
+"Ses montagnes de blocs dorés entourent les ruines de Vijayanagara, une capitale impériale du 16e siècle."
+],
+[
+"mont",
+1,
+"Rocklands",
+"Afrique du Sud",
+"Cederberg",
+"",
+"sol:sable montagnes blocs:3 soleil",
+"Des blocs de grès orange dans les montagnes du Cederberg, grimpés pendant l'hiver austral.",
+"Les San ont laissé des peintures rupestres sous plusieurs de ces rochers."
+],
+[
+"mont",
+1,
+"Montserrat",
+"Espagne",
+"Catalogne",
+"1236 m",
+"scie monastere",
+"La montagne sciée. Certains y ont vu Montsalvat, le château du Graal.",
+"Son monastère abrite la Vierge noire, et son choeur d'enfants est l'un des plus anciens d'Europe."
+],
+[
+"mont",
+1,
+"Tre Cime di Lavaredo",
+"Italie",
+"Dolomites",
+"2999 m",
+"sol tours:3",
+"Trois tours de calcaire dont les faces nord ont fait la légende de l'alpinisme.",
+"Pendant la Première Guerre mondiale, la ligne de front passait à leur pied."
+],
+[
+"mont",
+1,
+"Half Dome",
+"États Unis",
+"Californie, Yosemite",
+"2695 m",
+"sol pins halfdome",
+"Une légende ahwahnee y voit une femme changée en pierre après une dispute avec son mari.",
+"Les randonneurs atteignent le sommet en se hissant le long de câbles d'acier."
+],
+[
+"mont",
+1,
+"Mont Ida",
+"Grèce",
+"Crète",
+"2456 m",
+"massif grotte:petite",
+"Zeus enfant y fut caché dans une grotte pour échapper à son père Cronos.",
+"Les Courètes dansaient en frappant leurs boucliers pour couvrir les pleurs du bébé."
+],
+[
+"mont",
+2,
+"Cervin",
+"Suisse et Italie",
+"Alpes valaisannes",
+"4478 m",
+"pyr",
+"La pyramide parfaite des Alpes, que les Italiens appellent Monte Cervino.",
+"Sa première ascension, en 1865 par Edward Whymper, tourna au drame : quatre alpinistes chutèrent à la descente."
+],
+[
+"mont",
+2,
+"Mont Blanc",
+"France et Italie",
+"Alpes",
+"4805 m",
+"massif:snow",
+"Le toit de l'Europe occidentale, qu'on appelait autrefois la montagne maudite.",
+"Jacques Balmat et Michel Gabriel Paccard l'ont gravi les premiers, le 8 août 1786."
+],
+[
+"mont",
+2,
+"Eiger",
+"Suisse",
+"Oberland bernois",
+"3967 m",
+"pic:face",
+"On raconte que le moine, le Mönch, se dresse entre l'ogre, l'Eiger, et la jeune fille, la Jungfrau, pour la protéger de lui.",
+"Sa face nord, surnommée la face meurtrière, n'a été vaincue qu'en 1938."
+],
+[
+"mont",
+2,
+"Cerro Torre",
+"Argentine et Chili",
+"Patagonie",
+"3128 m",
+"montagnes torre",
+"Une aiguille de granit coiffée d'un champignon de glace, battue par les vents.",
+"Cesare Maestri affirma l'avoir gravie en 1959. Beaucoup en doutent encore aujourd'hui."
+],
+[
+"mont",
+2,
+"Kilimandjaro",
+"Tanzanie",
+"Afrique de l'Est",
+"5895 m",
+"sol:sable volcan:snow arbreSeul",
+"Un volcan coiffé de neige au dessus de la savane, plus haut sommet d'Afrique.",
+"Ses glaciers fondent si vite qu'ils pourraient disparaître dans les prochaines décennies."
+],
+[
+"mont",
+2,
+"Mont Fuji",
+"Japon",
+"Honshū",
+"3776 m",
+"volcan:snow torii",
+"Volcan sacré, demeure de la déesse des fleurs de cerisier, Konohanasakuya hime.",
+"Sa dernière éruption date de 1707. Des centaines de milliers de personnes le gravissent chaque été."
+],
+[
+"mont",
+3,
+"Mont Kailash",
+"Chine",
+"Tibet",
+"",
+"pic:sym drapeaux",
+"Sacré pour quatre religions, il n'a jamais été gravi, par respect.",
+"Les pèlerins en font le tour à pied, une boucle d'une cinquantaine de kilomètres."
+],
+[
+"mont",
+3,
+"Chomolungma",
+"Népal et Chine",
+"Himalaya",
+"8849 m",
+"pic:big drapeaux",
+"La déesse mère du monde, que l'on appelle aussi Everest.",
+"Tenzing Norgay et Edmund Hillary atteignirent le sommet les premiers, le 29 mai 1953."
+],
+[
+"mont",
+3,
+"Mont Ararat",
+"Turquie",
+"Anatolie orientale",
+"5137 m",
+"volcan:snow arche:bateau",
+"C'est sur ses pentes que l'arche de Noé se serait posée après le déluge.",
+"Plus haut sommet de Turquie, il domine Erevan, en Arménie, dont il est le symbole."
+],
+[
+"mont",
+4,
+"Mont Roraima",
+"Venezuela, Brésil et Guyana",
+"Gran Sabana",
+"2810 m",
+"table brume",
+"Pour les Pemóns, ce plateau aux falaises verticales serait la souche d'un arbre géant qui portait tous les fruits du monde.",
+"Il aurait inspiré Le Monde perdu de Conan Doyle, où des dinosaures survivent sur un plateau isolé."
+],
+[
+"mont",
+4,
+"Vallée de Hunza",
+"Pakistan",
+"Gilgit Baltistan",
+"",
+"montagnes pic:snow village",
+"On la cite souvent parmi les inspirations de Shangri La, la vallée où l'on ne vieillit pas.",
+"Ses habitants ont la réputation, sans doute exagérée, d'une longévité exceptionnelle. Le Rakaposhi la domine du haut de ses 7788 m."
+],
+[
+"mont",
+4,
+"Son Doong",
+"Viêt Nam",
+"Quảng Trị, ex province de Quảng Bình",
+"",
+"grotte chenes",
+"La plus grande grotte connue au monde, où pousse une jungle sous des puits de lumière.",
+"Découverte par un habitant en 1991, elle n'a été explorée qu'en 2009. Un immeuble de 40 étages pourrait y tenir."
+],
+[
+"eau",
+0,
+"Lac du Bourget",
+"France",
+"Savoie",
+"",
+"montagnes lac:grand chapelle:rive",
+"Lamartine y attendit en vain son amour et en tira son poème Le Lac.",
+"C'est le plus grand lac naturel d'origine glaciaire entièrement français, et aussi le plus profond."
+],
+[
+"eau",
+0,
+"Pont d'Arc",
+"France",
+"Ardèche",
+"",
+"sol arche riviere",
+"Une arche de pierre géante de plus de 50 m de haut, creusée par la rivière.",
+"Tout près, la grotte Chauvet abrite des peintures vieilles d'environ 36 000 ans, parmi les plus anciennes du monde."
+],
+[
+"eau",
+0,
+"Lac de Gaube",
+"France",
+"Hautes Pyrénées",
+"",
+"pic:snow lac:grand sapins",
+"Un lac sombre au pied du Vignemale, cher aux voyageurs romantiques du 19e siècle.",
+"Le Vignemale qui le domine est le plus haut sommet des Pyrénées françaises."
+],
+[
+"eau",
+0,
+"Lac de Paladru",
+"France",
+"Isère",
+"",
+"montagnes lac:grand villeEngloutie:lac",
+"Une ville engloutie dormirait sous ses eaux, punie pour avoir chassé un mendiant.",
+"Les archéologues y ont trouvé un village de l'an mil, parfaitement conservé dans la vase."
+],
+[
+"eau",
+0,
+"Île de Sein",
+"France",
+"Finistère",
+"",
+"mer ile:plate phare",
+"Neuf prêtresses gauloises y vivaient, capables de commander aux vents et aux vagues.",
+"En 1940, presque tous ses hommes partirent rejoindre de Gaulle à Londres."
+],
+[
+"eau",
+0,
+"Mer de Glace",
+"France",
+"Haute Savoie, Chamonix",
+"",
+"glacier",
+"Le plus long glacier de France, dont les vagues de glace figées ont donné le nom.",
+"On y descend par des escaliers toujours plus longs, car le glacier perd plusieurs mètres d'épaisseur chaque année."
+],
+[
+"eau",
+0,
+"Lac de Grand Lieu",
+"France",
+"Loire Atlantique",
+"",
+"sol lac:grand villeEngloutie:lac brume",
+"La ville d'Herbauges y aurait été engloutie pour avoir refusé d'écouter saint Martin de Vertou.",
+"En hiver, c'est le plus grand lac de plaine de France, refuge de milliers d'oiseaux."
+],
+[
+"eau",
+0,
+"Île d'Ouessant",
+"France",
+"Finistère",
+"",
+"mer ile phare",
+"Qui voit Ouessant voit son sang, disaient les marins effrayés par ses récifs.",
+"Son phare du Créac'h est l'un des plus puissants d'Europe."
+],
+[
+"eau",
+0,
+"Calanque d'En Vau",
+"France",
+"Marseille",
+"",
+"gorge:mer aiguilles:1",
+"Un fjord de calcaire aux eaux turquoise, gardé par des aiguilles.",
+"On y vient à pied ou en bateau. Les grimpeurs y gravissent le Doigt de Dieu."
+],
+[
+"eau",
+0,
+"Lac Blanc",
+"France",
+"Haute Savoie, Chamonix",
+"",
+"massif:snow lac:grand",
+"Un miroir d'altitude qui reflète tout le massif du Mont Blanc.",
+"Il reste gelé une grande partie de l'année, à plus de 2300 m d'altitude."
+],
+[
+"eau",
+0,
+"Lac de Serre Ponçon",
+"France",
+"Hautes Alpes",
+"",
+"montagnes lac:grand chapelle:ilot",
+"Sous ses eaux dorment des villages noyés à la construction du barrage.",
+"Sa petite chapelle Saint Michel, posée sur un îlot, est devenue l'image du lac."
+],
+[
+"eau",
+0,
+"Pont du Gard",
+"France",
+"Gard",
+"",
+"sol riviere aqueduc",
+"Le diable l'aurait bâti en une nuit contre la première âme à le traverser. On lui envoya un lièvre.",
+"Haut de près de 50 m, c'est le plus haut pont aqueduc romain connu."
+],
+[
+"eau",
+0,
+"Fontaine de Trevi",
+"Italie",
+"Rome",
+"",
+"sol fontaine",
+"Jette une pièce par dessus ton épaule et tu reviendras à Rome.",
+"Plus d'un million d'euros y sont repêchés chaque année et reversés à une oeuvre caritative."
+],
+[
+"eau",
+0,
+"Fjord de Geiranger",
+"Norvège",
+"Møre og Romsdal",
+"",
+"gorge:fjord bateau",
+"Les cascades des Sept Soeurs font face à leur prétendant, une chute éconduite par chacune d'elles tour à tour.",
+"Classé à l'UNESCO, le fjord est bordé de fermes perchées qu'on n'atteignait autrefois que par des échelles."
+],
+[
+"eau",
+0,
+"Chutes du Niagara",
+"Canada et États Unis",
+"Ontario et New York",
+"",
+"cascade:large brume",
+"Funambules et casse cou en tonneau ont défié ses eaux.",
+"En 1901, Annie Edson Taylor fut la première à les descendre dans un tonneau, le jour de ses 63 ans."
+],
+[
+"eau",
+0,
+"Lac d'Annecy",
+"France",
+"Haute Savoie",
+"",
+"montagnes lac:grand",
+"On le dit parmi les lacs les plus purs d'Europe.",
+"Une source cachée, le Boubioz, jaillit au fond du lac à plus de 80 m de profondeur."
+],
+[
+"eau",
+0,
+"Fontaine de Fontestorbes",
+"France",
+"Ariège",
+"",
+"sol chenes source",
+"Une source qui respire : en été, elle monte et redescend comme une petite marée.",
+"C'est l'une des rares sources intermittentes d'Europe, liée à un siphon dans la roche."
+],
+[
+"eau",
+0,
+"Lac de Sainte Croix",
+"France",
+"Var et Alpes de Haute Provence",
+"",
+"falaise:low lac:grand villeEngloutie:lac",
+"Un lac turquoise qui a englouti le vieux village des Salles sur Verdon en 1974.",
+"Il ferme la sortie des gorges du Verdon, que l'on remonte en pédalo."
+],
+[
+"eau",
+0,
+"Mer d'Iroise",
+"France",
+"Finistère",
+"",
+"mer ile:plate phare bateau",
+"Une mer de courants et d'îles, où les phares en pleine mer étaient surnommés des enfers.",
+"Les gardiens classaient les phares en paradis, purgatoires et enfers selon leur isolement."
+],
+[
+"eau",
+0,
+"Cascade du Hérisson",
+"France",
+"Jura",
+"",
+"cascade sapins",
+"Une rivière qui dégringole en une trentaine de chutes à travers la forêt.",
+"La plus haute, l'Éventail, déploie son eau sur 65 m."
+],
+[
+"eau",
+1,
+"Fontaine de Vaucluse",
+"France",
+"Vaucluse",
+"308 m de fond",
+"falaise:grotte source",
+"Le poète Pétrarque y vécut et y chanta son amour pour Laure.",
+"En 1989, le robot Spélénaute est descendu jusqu'à 308 m, le point le plus bas jamais atteint dans le gouffre."
+],
+[
+"eau",
+1,
+"Lac Baïkal",
+"Russie",
+"Sibérie",
+"1642 m de fond",
+"montagnes lac:glace",
+"Le lac le plus profond et le plus ancien du monde.",
+"Il contient environ un cinquième de l'eau douce liquide de la planète, et des phoques d'eau douce y vivent."
+],
+[
+"eau",
+1,
+"Chutes Victoria",
+"Zambie et Zimbabwe",
+"Zambèze",
+"",
+"cascade:large brume arcenciel",
+"Mosi oa Tunya, la fumée qui gronde : sa brume se voit à des dizaines de kilomètres.",
+"Livingstone fut le premier Européen à les voir, en 1855, et leur donna le nom de sa reine."
+],
+[
+"eau",
+1,
+"Blue Hole",
+"Belize",
+"Mer des Caraïbes",
+"124 m de fond",
+"bluehole",
+"Un cercle bleu nuit presque parfait au milieu du récif.",
+"Cousteau l'a fait connaître en 1971. C'est une ancienne grotte noyée quand le niveau de la mer est remonté."
+],
+[
+"eau",
+1,
+"Lac Titicaca",
+"Pérou et Bolivie",
+"Andes",
+"3812 m",
+"montagnes lac:grand roseaux",
+"Selon les Incas, le soleil et la lune y sont nés.",
+"Le peuple uros vit sur des îles flottantes tressées en roseaux."
+],
+[
+"eau",
+1,
+"Grotte Bleue",
+"Italie",
+"Capri",
+"",
+"mer grotte barque",
+"L'empereur Tibère en aurait fait son bain privé.",
+"On y entre allongé au fond d'une barque, tant l'ouverture est basse."
+],
+[
+"eau",
+1,
+"Corryvreckan",
+"Royaume Uni",
+"Écosse, Hébrides intérieures",
+"",
+"mer tourbillon ile:plate",
+"La vieille sorcière de l'hiver, la Cailleach, y laverait ses grands manteaux.",
+"C'est l'un des plus grands tourbillons du monde. Son grondement s'entend à des kilomètres."
+],
+[
+"eau",
+1,
+"Mer des Sargasses",
+"Océan Atlantique",
+"Atlantique Nord",
+"",
+"mer algues bateau",
+"Une mer sans rivages couverte d'algues, où l'on croyait les navires piégés pour toujours.",
+"Les anguilles d'Europe traversent tout l'océan pour y pondre."
+],
+[
+"eau",
+1,
+"Triangle des Bermudes",
+"Océan Atlantique",
+"Entre Bermudes, Floride et Porto Rico",
+"",
+"nuages mer eclair bateau",
+"Navires et avions disparus nourrissent sa légende depuis des décennies.",
+"Les assureurs n'y constatent pas plus d'accidents qu'ailleurs, compte tenu du trafic de la zone."
+],
+[
+"eau",
+1,
+"Mer Morte",
+"Israël, Jordanie et Palestine",
+"Proche Orient",
+"440 m sous la mer",
+"sol:sable soleil lac:grand",
+"Si salée qu'on y flotte sans nager, au point le plus bas des terres émergées.",
+"Son niveau baisse de plus d'un mètre par an."
+],
+[
+"eau",
+2,
+"Cénotes",
+"Mexique",
+"Yucatán",
+"",
+"sol cenote",
+"Pour les Mayas, ces puits d'eau turquoise étaient des portes vers Xibalba, le monde souterrain.",
+"Ils dessinent un arc de cercle autour du cratère de l'astéroïde qui a fait disparaître les dinosaures."
+],
+[
+"eau",
+2,
+"Charybde et Scylla",
+"Italie",
+"Détroit de Messine",
+"",
+"mer falaise:low tourbillon",
+"Un tourbillon d'un côté, un monstre à six têtes de l'autre : Ulysse dut choisir.",
+"On en a tiré l'expression tomber de Charybde en Scylla."
+],
+[
+"eau",
+2,
+"Maelström",
+"Norvège",
+"Lofoten",
+"",
+"montagnes mer tourbillon",
+"Le grand tourbillon des mers du Nord, que l'on croyait sans fond.",
+"Edgar Allan Poe et Jules Verne l'ont rendu célèbre dans leurs récits."
+],
+[
+"eau",
+2,
+"Chaussée des Géants",
+"Royaume Uni",
+"Irlande du Nord, comté d'Antrim",
+"",
+"mer falaise:strates",
+"Le géant Finn McCool l'aurait construite pour traverser la mer et affronter un géant écossais.",
+"Elle compte environ 40 000 colonnes de basalte, souvent hexagonales, nées du refroidissement d'une coulée de lave."
+],
+[
+"eau",
+2,
+"Lac Svetloïar",
+"Russie",
+"Oblast de Nijni Novgorod",
+"",
+"chenes lac:grand villeEngloutie:lac cloche",
+"La ville sainte de Kitej y aurait disparu pour échapper aux envahisseurs. Ses cloches sonneraient encore.",
+"Rimski Korsakov a tiré de cette légende un opéra créé en 1907."
+],
+[
+"eau",
+3,
+"Îles Scilly",
+"Royaume Uni",
+"Cornouailles",
+"",
+"mer ile:plate villeEngloutie",
+"On y voit les derniers sommets de Lyonesse, le pays de Tristan englouti en une nuit.",
+"À marée très basse, on aperçoit des murets de champs anciens, noyés par la montée de la mer."
+],
+[
+"eau",
+3,
+"Cascade du Styx",
+"Grèce",
+"Péloponnèse, mont Chelmos",
+"",
+"cascade brume",
+"Les Grecs y voyaient le Styx, le fleuve des Enfers. Achille y aurait été plongé enfant, tenu par le talon.",
+"Selon une rumeur antique, son eau glacée aurait servi à empoisonner Alexandre le Grand."
+],
+[
+"eau",
+3,
+"Yonaguni",
+"Japon",
+"Okinawa",
+"",
+"mer temple:englouti",
+"Des terrasses de pierre sous la mer, que certains prennent pour les ruines d'une cité engloutie.",
+"La plupart des géologues y voient une formation naturelle de grès. Le site est aussi réputé pour ses bancs de requins marteaux."
+],
+[
+"eau",
+4,
+"Île de Pâques",
+"Chili",
+"Océan Pacifique",
+"",
+"mer ile moai",
+"Selon les Rapanui, le mana des ancêtres faisait marcher les moaïs jusqu'à leur place.",
+"Près de 900 statues y ont été sculptées, sur l'une des terres habitées les plus isolées du monde."
+],
+[
+"eau",
+4,
+"Skellig Michael",
+"Irlande",
+"Comté de Kerry",
+"",
+"mer pic monastere",
+"Des moines y vécurent des siècles dans des huttes de pierre en forme de ruche, sur un rocher battu par l'Atlantique.",
+"Le monastère a été fondé vers le 6e ou le 7e siècle. L'île a servi de décor à la saga Star Wars."
+],
+[
+"eau",
+4,
+"Cap Sounion",
+"Grèce",
+"Attique",
+"",
+"mer falaise:low temple:haut",
+"Le roi Égée s'y serait jeté dans la mer en voyant revenir le navire de Thésée aux voiles noires, donnant son nom à la mer Égée.",
+"Lord Byron a gravé son nom sur l'une des colonnes du temple de Poséidon."
+]
+];
+
+/* ---------- Illustrations des cartes : petites scènes dessinées à l'encre ---------- */
+var G=56,S={top:null};
+function sp(d,c,x){return '<path class="'+c+'" d="'+d+'"'+(x||"")+'/>'}
+function sc(x,y,r,c){return '<circle class="'+c+'" cx="'+r1(x)+'" cy="'+r1(y)+'" r="'+r1(r)+'"/>'}
+function se(x,y,rx,ry,c){return '<ellipse class="'+c+'" cx="'+r1(x)+'" cy="'+r1(y)+'" rx="'+r1(rx)+'" ry="'+r1(ry)+'"/>'}
+function sr(x,y,w,h,c){return '<rect class="'+c+'" x="'+r1(x)+'" y="'+r1(y)+'" width="'+r1(w)+'" height="'+r1(h)+'"/>'}
+function hatch(pts){var d="";pts.forEach(function(p){d+="M"+p[0]+" "+p[1]+"l"+p[2]+" "+p[3]});return sp(d,"sh")}
+function tree(x,y,s){s=s||1;return sr(x-.8*s,y-7*s,1.6*s,7*s,"stk")+sc(x,y-9*s,4*s,"st")+sc(x-3*s,y-7*s,3*s,"st")+sc(x+3*s,y-7*s,3*s,"st")}
+function fir(x,y,s){s=s||1;return sr(x-.6*s,y-3*s,1.2*s,3*s,"stk")+sp("M"+r1(x-4*s)+" "+r1(y-3*s)+"L"+x+" "+r1(y-16*s)+"L"+r1(x+4*s)+" "+r1(y-3*s)+"Z","st")}
+function pine(x,y,s){s=s||1;return sp("M"+x+" "+y+"Q"+r1(x+1*s)+" "+r1(y-6*s)+" "+r1(x-.5*s)+" "+r1(y-12*s),"sl")+se(x,y-13*s,6*s,2.4*s,"st")}
+function house(x,y,w){return sr(x-w/2,y-w*.7,w,w*.7,"so")+sp("M"+r1(x-w/2-1)+" "+r1(y-w*.7)+"L"+x+" "+r1(y-w*1.2)+"L"+r1(x+w/2+1)+" "+r1(y-w*.7)+"Z","srf")}
+function cross(x,y){return sp("M"+x+" "+y+"v-6M"+(x-2)+" "+(y-4.4)+"h4","sl")}
+var PR={
+  sol:function(a){var c=a==="sable"?"sgs":(a==="sombre"?"sgd":"sg");var s=sr(0,G,100,14,c)+sp("M0 "+G+"H100","sl");
+    if(a==="lande")s+=hatch([[8,61,1,-2],[20,64,1,-2],[34,60,1,-2],[60,63,1,-2],[76,60,1,-2],[90,65,1,-2]]);
+    if(a==="fleurs"){for(var i=0;i<26;i++)s+=sc(3+i*3.7,58+(i*7%10),.9,"sfl")}
+    if(a==="sable")s+=sp("M0 63Q20 59 40 63T80 62T100 61","sh");return s},
+  mer:function(){return sr(0,48,100,22,"sw")+sp("M0 48H100","swl")+sp("M8 54q3 -2 6 0M30 58q3 -2 6 0M58 55q3 -2 6 0M78 61q3 -2 6 0M16 64q3 -2 6 0M46 66q3 -2 6 0","swl")},
+  montagnes:function(){return sp("M0 44L12 34L22 40L36 26L50 37L62 29L78 40L90 31L100 37V"+G+"H0Z","sb")},
+  nuages:function(){return sp("M12 16q2 -6 8 -4q4 -5 9 0q5 0 4 4z","so")+sp("M66 10q2 -5 7 -3q4 -4 8 0q4 0 3 3z","so")},
+  soleil:function(){return sc(82,13,5,"sgo")+sp("M82 4v-2M82 22v2M73 13h-2M91 13h2M76 7l-1.5 -1.5M88 7l1.5 -1.5M76 19l-1.5 1.5M88 19l1.5 1.5","sl")},
+  eclair:function(){return sp("M30 4L24 16H29L23 28L36 13H30L35 4Z","sgo")},
+  brume:function(){return sp("M4 40H40M52 44H96M10 48H56M64 36H92","sd")},
+  etoiles:function(){var s="";[[12,10],[24,20],[40,8],[70,14],[88,24],[60,6],[80,6]].forEach(function(p){s+=sp("M"+p[0]+" "+(p[1]-2)+"v4M"+(p[0]-2)+" "+p[1]+"h4","sgl")});return s},
+  arcenciel:function(){return sp("M18 50A32 30 0 0 1 82 50","sar1")+sp("M22 50A28 26 0 0 1 78 50","sar2")+sp("M26 50A24 22 0 0 1 74 50","sar3")},
+  pic:function(a){var s,top=[50,16];
+    if(a==="sym"){s=sp("M12 "+G+"L50 12L88 "+G+"Z","sm")+sp("M42 21L50 12L58 21L54 24L50 20L46 24Z","sn")+sp("M50 22V52","sh");top=[50,12]}
+    else if(a==="bald"){s=sp("M4 "+G+"Q36 24 50 20Q64 24 96 "+G+"Z","sm")+sp("M36 28Q50 18 64 28Q57 31 50 29Q43 31 36 28Z","sn")+sr(49,14,2,7,"so");top=[50,14]}
+    else if(a==="face"){s=sp("M4 "+G+"L36 22L48 12L54 18L94 "+G+"Z","sm")+sp("M48 12L54 18L50 20L44 18Z","sn")+hatch([[52,22,6,14],[56,28,6,12],[60,34,6,10],[50,30,5,14]]);top=[48,12]}
+    else if(a==="big"){s=sp("M2 "+G+"L22 34L30 36L44 14L50 8L58 18L66 16L82 36L98 "+G+"Z","sm")+sp("M40 20L44 14L50 8L58 18L66 16L70 22L62 22L56 26L50 18L46 24Z","sn")+hatch([[60,28,8,10],[64,36,8,10],[56,34,6,12]]);top=[50,8]}
+    else{s=sp("M6 "+G+"L24 36L32 38L44 20L50 16L58 24L66 22L80 40L94 "+G+"Z","sm")+(a==="snow"?sp("M42 23L50 16L58 24L62 27L56 27L52 25L48 28L44 26Z","sn"):"")+hatch([[60,30,6,10],[66,36,6,10],[56,34,5,12]])}
+    S.top=top;return s},
+  pyr:function(){S.top=[50,9];return sp("M14 "+G+"L44 22L50 9L53 13L86 "+G+"Z","sm")+sp("M50 9L53 13L86 "+G+"H58L52 24Z","sh2")+sp("M44 22L50 9L53 13L50 18L47 26Z","sn")+hatch([[60,30,5,10],[66,38,5,10],[72,44,5,8]])},
+  massif:function(a){S.top=[50,20];return sp("M2 "+G+"Q24 32 40 26Q50 18 60 23Q78 30 98 "+G+"Z","sm")+sp((a==="snow"?"M18 40Q30 30 40 26Q50 18 60 23Q72 28 84 40Q74 36 66 38Q58 32 50 36Q42 31 34 37Q26 35 18 40Z":"M36 28Q50 18 62 24Q56 27 50 26Q43 29 36 28Z"),"sn")},
+  volcan:function(a){S.top=[50,22];var s=sp("M8 "+G+"L38 22L62 22L92 "+G+"Z","sm")+se(50,22,12,1.8,"sk2");
+    if(a==="snow")s+=sp("M38 22L62 22L68 30L60 28L54 32L46 28L40 31L32 30Z","sn");
+    if(a==="lac")s=sp("M2 "+G+"L30 26L70 26L98 "+G+"Z","sm")+se(50,27,20,4,"sw");return s},
+  puy:function(){S.top=[50,20];return sp("M8 "+G+"Q34 24 50 20Q66 24 92 "+G+"Z","sm")+hatch([[60,30,6,10],[68,38,6,10]])},
+  dent:function(a){if(a==="long"){S.top=[66,20];return sp("M2 "+G+"L18 42L40 30L62 20L72 22L82 34L98 "+G+"Z","sm")+hatch([[40,34,3,14],[48,30,3,16],[56,26,3,18],[64,24,3,18]])}
+    S.top=[44,16];return sp("M8 "+G+"L28 32Q34 18 44 16L68 18Q74 22 76 40L92 "+G+"Z","sm")+hatch([[70,24,2,14],[66,22,2,16],[73,30,2,12]])},
+  aiguilles:function(a){var n=+a||4,s="",best=99;for(var i=0;i<n;i++){var x=n===1?50:16+i*68/(n-1),h=18+((i*37)%5)*5,y=G-h-12;if(y<best){best=y;S.top=[x,y]}
+    s+=sp("M"+r1(x-6)+" "+G+"L"+r1(x-2)+" "+r1(y+2)+"L"+r1(x)+" "+r1(y)+"L"+r1(x+2)+" "+r1(y+3)+"L"+r1(x+6)+" "+G+"Z","sm")+hatch([[x+2,y+8,1,10]])}return s},
+  tours:function(a){var n=+a||3,s="";for(var i=0;i<n;i++){var x=24+i*26,y=[20,12,24][i%3];s+=sp("M"+(x-8)+" "+G+"L"+(x-7)+" "+(y+4)+"Q"+x+" "+(y-3)+" "+(x+7)+" "+(y+4)+"L"+(x+8)+" "+G+"Z","sm")+hatch([[x+3,y+8,0,16],[x+5,y+12,0,14]])}S.top=[50,12];return s},
+  table:function(){S.top=[51,20];return sp("M10 "+G+"L26 44L30 22L72 20L76 44L92 "+G+"Z","sm")+hatch([[34,26,0,16],[42,24,0,18],[56,24,0,18],[66,24,0,18]])},
+  double:function(){S.top=[58,12];return sp("M6 "+G+"L32 28L40 16L46 24L52 18L58 12L64 22L94 "+G+"Z","sm")+hatch([[62,26,5,12],[68,34,6,10]])},
+  sucre:function(){S.top=[52,14];return sp("M10 "+G+"Q18 38 30 40L36 "+G+"Z","sm")+sp("M34 "+G+"Q34 18 52 14Q68 18 70 "+G+"Z","sm")+hatch([[60,22,4,16],[64,30,3,16]])+sp("M30 40L52 14","sd")},
+  halfdome:function(){S.top=[46,18];return sp("M10 "+G+"Q12 22 46 18Q58 18 64 22L64 "+G+"Z","sm")+hatch([[60,24,0,30],[62,24,0,30]])},
+  torre:function(){S.top=[51,12];return sp("M40 "+G+"L45 22L47 14L55 14L57 24L62 "+G+"Z","sm")+se(51,13,6,3,"sn")+hatch([[54,26,1,20]])},
+  breche:function(){S.top=[50,30];return sp("M2 "+G+"L4 24L40 20L44 32L56 32L60 20L96 24L98 "+G+"Z","sm")+sp("M4 24L40 20L42 24L6 28Z","sn")+sp("M60 20L96 24L94 28L58 24Z","sn")+hatch([[20,30,0,18],[30,28,0,20],[70,30,0,18],[80,30,0,18]])},
+  scie:function(){var s="";[[14,30],[24,22],[34,18],[44,14],[54,16],[64,20],[74,24],[84,30]].forEach(function(p){s+=sp("M"+(p[0]-6)+" "+G+"L"+(p[0]-5)+" "+(p[1]+4)+"Q"+p[0]+" "+(p[1]-3)+" "+(p[0]+5)+" "+(p[1]+4)+"L"+(p[0]+6)+" "+G+"Z","sm")});S.top=[44,14];return s},
+  montAbbaye:function(){S.top=[50,10];return sp("M24 50Q34 32 50 28Q66 32 76 50Z","sm")+house(40,44,6)+house(58,42,7)+sr(45,22,10,10,"so")+sp("M45 22L50 16L55 22Z","so")+sp("M50 16V6","sl")+sc(50,5,1.2,"sgo")},
+  cirque:function(){S.top=[50,14];return sp("M0 "+G+"L2 18Q50 6 98 18L100 "+G+"Z","sm")+sp("M4 30Q50 18 96 30M6 40Q50 28 94 40","sh")},
+  falaise:function(a){var s="";
+    if(a==="low"){S.top=[30,30];s=sp("M0 "+(G-6)+"L0 26L22 24L36 30L44 "+(G-6)+"Z","sm")+hatch([[10,30,0,14],[20,30,0,14],[30,34,0,10]]);return s}
+    if(a==="band"){S.top=[50,14];s=sp("M0 "+G+"L0 36Q50 30 100 36L100 "+G+"Z","sb")+sp("M6 36L8 16L40 12L70 14L94 18L96 36Q50 30 6 36Z","sm")+hatch([[20,18,0,14],[34,16,0,16],[50,16,0,16],[66,16,0,16],[80,18,0,14]]);return s}
+    if(a==="long"){S.top=[50,30];return sp("M0 "+G+"L0 36L20 30L50 32L80 28L100 32L100 "+G+"Z","sm")+hatch([[10,36,0,14],[24,34,0,16],[40,36,0,14],[56,34,0,16],[72,32,0,18],[88,34,0,16]])}
+    var top=a==="big"?8:16;S.top=[50,top];
+    s=sp("M10 "+G+"L12 "+(top+6)+"L30 "+top+"L52 "+(top+3)+"L70 "+(top-2)+"L88 "+(top+4)+"L90 "+G+"Z","sm");
+    if(a==="strates")s+=sp("M24 54V22M34 54V18M44 54V19M54 54V18M64 54V16M74 54V18","sh");
+    else s+=sp("M14 30Q50 26 88 30M13 42Q50 38 89 42","sh");
+    if(a==="trous"){for(var i=0;i<16;i++)s+=se(18+(i*13)%66,24+(i*7)%28,1.4,1,"sk2")}
+    if(a==="grotte"){s+=sp("M36 "+G+"L36 42Q50 30 64 42L64 "+G+"Z","sk2")+sp("M42 40v4M48 37v5M54 37v4M58 40v3","sl")}
+    if(a!=="grotte"&&a!=="strates")s+=sp("M44 "+G+"Q40 44 48 36Q56 26 52 "+(top+4),"sr")+sc(48,36,1.3,"srf");
+    return s},
+  pointRouge:function(){return sc(30,52,1.6,"srf")+sc(62,52,1.6,"srf")},
+  gorge:function(a){var w=a==="mer"||a==="fjord";var s=sp("M0 "+(w?50:G)+"L0 12L22 10L30 "+(w?50:G)+"Z","sm")+sp("M100 "+(w?50:G)+"L100 14L76 12L70 "+(w?50:G)+"Z","sm")+hatch([[8,16,0,26],[16,14,0,28],[84,18,0,26],[92,18,0,24]]);
+    if(w){s=sr(0,48,100,22,"sw")+s+sp("M10 56q3 -2 6 0M44 60q3 -2 6 0M70 64q3 -2 6 0","swl");if(a==="fjord")s+=sp("M84 20V48M88 22V48M90 26V48","swl")}
+    else s=sr(0,G,100,14,"sg")+s+sp("M30 "+G+"Q40 62 36 70H64Q60 62 70 "+G+"Z","sw");
+    S.top=[22,10];return s},
+  glacier:function(){S.top=[50,14];return PR.montagnes()+sp("M0 "+G+"L0 26L24 16L36 26Q42 40 38 "+G+"Z","sm")+sp("M100 "+G+"L100 24L76 14L64 26Q58 40 62 "+G+"Z","sm")+sp("M36 26Q50 20 64 26Q58 40 62 "+G+"H38Q42 40 36 26Z","sn")+sp("M42 34L48 36M52 38L58 36M44 46L50 48M52 44L58 46","swl")+sr(0,G,100,14,"sg")},
+  cascade:function(a){var L=a==="large";var s=sr(0,G,100,14,"sg")+sp("M0 "+G+"L0 16L"+(L?20:40)+" 16L"+(L?20:42)+" 48Z","sm")+sp("M100 "+G+"L100 16L"+(L?80:60)+" 16L"+(L?80:58)+" 48Z","sm");
+    var x0=L?20:42,x1=L?80:58,d="";for(var x=x0+2;x<x1;x+=3)d+="M"+x+" 16V"+(50+(x%3));s+=sr(x0,16,x1-x0,34,"sw")+sp(d,"swl")+se(50,54,L?36:18,5,"sw");S.top=[50,16];return s},
+  source:function(){return se(50,60,20,5,"sw")+sp("M38 60a12 3 0 0 1 24 0M44 60a6 1.6 0 0 1 12 0","swl")+sp("M30 "+G+"Q30 44 40 42Q50 40 60 42Q70 44 70 "+G+"Z","sm")+se(50,60,20,5,"sw")+sp("M42 60a8 2 0 0 1 16 0","swl")},
+  lac:function(a){if(a==="grand"||a==="glace"){var s=sr(0,46,100,24,"sw")+sp("M0 46H100","swl")+sp("M10 52H30M50 56H76M22 62H40M62 64H88","swl");if(a==="glace")s+=sp("M14 54l8 4l6 -2M60 52l6 6l8 0M30 64l10 -3","sl");return s}
+    return se(50,61,30,5.5,"sw")+sp("M30 61H44M54 63H68","swl")},
+  riviere:function(){return sp("M40 "+G+"C34 61 58 63 46 70L66 70C74 63 52 61 56 "+G+"Z","sw")},
+  tourbillon:function(){return sp("M50 60m-16 0a16 5 0 1 1 32 0a12 4 0 1 1 -24 0a8 2.8 0 1 1 16 0a4 1.4 0 1 1 -8 0","swl")+se(50,60,2,.8,"sk2")},
+  ile:function(a){if(a==="plate")return sp("M20 49Q36 42 54 42Q70 43 82 49Z","sm");S.top=[50,30];return sp("M18 49Q30 34 46 30Q60 28 82 49Z","sm")},
+  grotte:function(a){if(a==="petite")return sp("M64 "+G+"L64 46Q72 38 80 46L80 "+G+"Z","sk2");
+    var s=sp("M4 "+G+"L4 22Q50 4 96 22L96 "+G+"Z","sm")+sp("M30 "+G+"L30 38Q50 20 70 38L70 "+G+"Z","sk2");
+    if(a==="basalte")s+=sp("M8 22V54M14 18V54M20 16V36M26 14V34M74 14V34M80 16V54M86 18V54M92 22V54","sh");
+    return s+se(50,54,18,3,"sw")},
+  gouffre:function(){return se(50,62,30,6,"sk2")+sp("M20 62Q50 50 80 62","sl")+sp("M30 62v4M40 62v6M60 62v5M70 62v4","swl")},
+  villeEngloutie:function(a){var y=a==="lac"?50:52,s="";
+    s+=sp("M20 "+(y+16)+"V"+(y+8)+"H28V"+(y+16)+"M30 "+(y+16)+"V"+(y+4)+"L34 "+y+"L38 "+(y+4)+"V"+(y+16)+"M42 "+(y+16)+"V"+(y+7)+"Q48 "+(y+1)+" 54 "+(y+7)+"V"+(y+16)+"M58 "+(y+16)+"V"+(y+2)+"L62 "+(y-3)+"L66 "+(y+2)+"V"+(y+16)+"M70 "+(y+16)+"V"+(y+9)+"H80V"+(y+16),"swd");return s},
+  cloche:function(){return sp("M74 64Q74 56 78 55Q82 56 82 64Z","sgo")+sc(78,65,.9,"sgo")},
+  temple:function(a){if(a==="englouti")return sp("M30 54L50 50L70 54M32 54V66M40 54V66M48 54V64M56 54V66M64 54V62M68 54V66","swd");
+    var x=a==="haut"&&S.top?S.top[0]:50,y=a==="haut"&&S.top?S.top[1]+1:G,w=a==="haut"?14:24,h=a==="haut"?6:12,s=sp("M"+(x-w/2-2)+" "+(y-h)+"L"+x+" "+(y-h-5)+"L"+(x+w/2+2)+" "+(y-h)+"Z","so");
+    for(var i=0;i<5;i++){var cx=x-w/2+i*w/4;if(a==="ruine"&&i===3)s+=sr(cx-1,y-h/2,2,h/2,"so");else s+=sr(cx-1,y-h,2,h,"so")}
+    if(a==="ruine")s=s.replace(/^<path[^>]*>/,"");return s},
+  phare:function(){return sp("M80 "+(G-6)+"L82 26H88L90 "+(G-6)+"Z","so")+sp("M81 40H89M81.6 33H88.4","srs")+sr(82,22,6,4,"sgo")+sp("M82 24L62 18M82 24L62 30","sd")},
+  bateau:function(){return sp("M18 50H34L31 54H21Z","so")+sp("M26 50V38L34 48Z","so")},
+  barque:function(){return sp("M40 58H60L56 62H44Z","so")+sp("M50 58L46 52","sl")},
+  monstre:function(){return sp("M30 50q3 -6 6 0M40 50q3 -7 6 0M50 50Q52 36 58 34Q62 34 62 38","stm")+sc(60.5,36,.6,"sk2")},
+  baleine:function(){return sp("M22 50Q30 36 54 38Q70 40 74 50Z","sbal")+sp("M74 48L84 42L82 48L86 50Z","sbal")+sc(30,45,.8,"sk2")+sp("M40 36q-2 -6 0 -8M40 36q2 -6 4 -7","swl")},
+  trident:function(){return sp("M50 66V30M44 36V30Q44 38 50 38Q56 38 56 30V36M50 30L50 26","sgl2")},
+  algues:function(){return sp("M20 60q2 -3 0 -6q-2 -3 0 -6M32 64q2 -3 0 -6M60 62q2 -3 0 -6q-2 -3 0 -6M76 66q2 -3 0 -6","stl")},
+  roseaux:function(){return sp("M22 50Q32 44 42 50Z","sre")+sp("M60 50Q68 45 76 50Z","sre")+house(32,48,5)+house(68,48,4)},
+  bluehole:function(){return sr(0,0,100,70,"sw2")+se(50,35,34,26,"sreef")+se(50,35,26,19,"sdeep")+se(50,35,14,10,"sdeep2")},
+  cenote:function(){return se(50,62,32,7,"sk2")+se(50,64,24,4,"sw3")+sp("M26 58v6M34 57v8M66 57v7M74 58v5","stl")+sp("M18 "+G+"Q50 50 82 "+G,"sl")},
+  aqueduc:function(){var s=sr(8,36,84,8,"so")+sr(8,24,84,12,"so");for(var i=0;i<3;i++){var x=14+i*26;s+=sp("M"+x+" "+G+"V44H"+(x+6)+"V"+G+"Z","so")}
+    var d="";for(var j=0;j<6;j++){var x2=12+j*13.5;d+="M"+r1(x2)+" 36V30a4 4 0 0 1 8 0V36"}s+=sp(d,"sl")+sp("M14 44Q27 32 40 44M40 44Q53 32 66 44M66 44Q79 32 92 44","sl");return s},
+  arche:function(a){if(a==="bateau")return sp("M58 46H82L78 50H62Z","so")+sr(64,40,12,6,"so")+sp("M62 40L70 35L78 40Z","srf");
+    S.top=[50,18];return sp("M10 "+G+"L12 30Q50 14 88 30L90 "+G+"H70Q68 36 50 34Q32 36 30 "+G+"Z","sm")+hatch([[16,34,0,18],[82,34,0,18]])},
+  fontaine:function(){return sr(26,24,48,24,"so")+sp("M24 24L50 14L76 24Z","so")+sr(30,30,6,16,"sk2")+sr(64,30,6,16,"sk2")+sc(50,32,3,"so")+sp("M50 35V44M46 38H54","sl")+se(50,56,30,5,"sw")+sp("M44 44q-6 4 -10 12M56 44q6 4 10 12","swl")},
+  village:function(){return house(20,G,6)+house(28,G,5)+house(76,G,6)+house(84,G,5)},
+  chateau:function(){var x=78,y=47;if(S.top){x=S.top[0];y=S.top[1]+2}return sr(x-8,y-6,16,6,"so")+sr(x-9,y-11,5,11,"so")+sr(x+4,y-11,5,11,"so")+sp("M"+(x-9)+" "+(y-11)+"h1v-1h1v1h1v-1h1v1h1M"+(x+4)+" "+(y-11)+"h1v-1h1v1h1v-1h1v1h1","sl")+sp("M"+(x-6.5)+" "+(y-11)+"V"+(y-16)+"l3 1.5l-3 1.5","srs")},
+  chapelle:function(a){var x=70,y=G;if(S.top){x=S.top[0];y=S.top[1]}if(a==="rive"){x=80;y=46}if(a==="ilot")return sp("M42 50Q50 44 58 50Z","sm")+house(50,46,6)+cross(50,41.8);
+    return house(x,y,6)+cross(x,y-4.2)},
+  monastere:function(a){var x=50,y=G-1;if(S.top&&a!=="bas"){x=S.top[0];y=S.top[1]+1}return sr(x-8,y-5,16,5,"so")+sp("M"+(x-9)+" "+(y-5)+"L"+x+" "+(y-9)+"L"+(x+9)+" "+(y-5)+"Z","srf")+sr(x+3,y-12,3,7,"so")},
+  croix:function(){return S.top?cross(S.top[0],S.top[1]):""},
+  drapeaux:function(){if(!S.top)return "";var x=S.top[0],y=S.top[1],s=sp("M"+x+" "+y+"Q"+(x-12)+" "+(y+14)+" "+(x-26)+" "+(y+20),"sl"),c=["srf","sgo","swf","stf","so"];for(var i=1;i<6;i++){var t=i/6,px=x-26*t,py=y+(14+6*t)*t;s+=sr(px-1,py,2.2,3,c[i%5])}return s},
+  torii:function(){return sp("M70 "+G+"V40M84 "+G+"V40","sto")+sp("M66 39Q77 36 88 39M68 43H86","sto")},
+  meru:function(){S.top=[50,14];return se(50,40,44,10,"sd2")+se(50,40,34,7,"sd2")+PR.pic("sym")+sc(16,14,4,"sgo")+sp("M84 10a5 5 0 1 0 4 8a4 4 0 1 1 -4 -8z","so")},
+  cristaux:function(){return sp("M40 "+G+"L42 46L44 "+G+"M46 "+G+"L49 42L52 "+G+"M54 "+G+"L56 47L58 "+G,"scr")},
+  tourAir:function(){return sp("M42 "+G+"V18L50 10L58 18V"+G+"M42 30H58M42 42H58","sd3")},
+  ogre:function(){return sp("M18 "+G+"Q16 20 50 18Q84 20 82 "+G+"Z","sm")+se(36,32,5,4,"sk2")+se(64,32,5,4,"sk2")+sp("M34 "+G+"V48Q50 36 66 48V"+G+"Z","sk2")+sp("M44 40Q50 34 56 40","sl")},
+  elephant:function(){S.top=[50,24];return sp("M24 "+G+"Q18 30 44 26Q66 24 74 36Q80 44 78 "+G+"H66V48H40V"+G+"Z","sm")+sp("M76 40Q86 46 84 54","slw")+sc(70,36,1,"sk2")+sp("M66 32Q62 40 66 46","sl")},
+  menhirs:function(a){var n=+a||3,s="";for(var i=0;i<n;i++){var x=n===1?50:20+i*60/(n-1),h=12+(i*5)%9;s+=sp("M"+(x-3)+" "+G+"Q"+(x-4)+" "+(G-h)+" "+x+" "+(G-h-2)+"Q"+(x+4)+" "+(G-h)+" "+(x+3)+" "+G+"Z","sm")}return s},
+  dolmen:function(){return sp("M34 "+G+"V44H38V"+G+"M62 "+G+"V44H66V"+G,"sm")+sp("M30 44Q50 36 70 42L68 46Q50 42 32 47Z","sm")},
+  rocher:function(){S.top=[50,24];return sp("M30 "+G+"Q28 30 44 26Q58 22 66 30Q72 40 70 "+G+"Z","sm")+hatch([[60,32,2,14],[64,36,2,12]])},
+  blocs:function(a){var s="",B=a==="big"?[[28,G,16,14],[60,G,20,18]]:[[20,G,10,12],[42,G,13,17],[66,G,11,13],[86,G,9,10]].slice(0,+a||3);
+    if(a==="big")S.top=[60,G-18];B.forEach(function(b){s+=sp("M"+(b[0]-b[2])+" "+b[1]+"Q"+(b[0]-b[2])+" "+(b[1]-b[3])+" "+b[0]+" "+(b[1]-b[3])+"Q"+(b[0]+b[2])+" "+(b[1]-b[3])+" "+(b[0]+b[2])+" "+b[1]+"Z","sm")+sp("M"+(b[0]+b[2]*.3)+" "+(b[1]-b[3]*.7)+"q"+(b[2]*.4)+" 2 "+(b[2]*.5)+" "+(b[3]*.5),"sh")});return s},
+  fleches:function(){return sp("M30 46l3 -2l0 4z","srf")+sp("M58 44l3 -2l0 4z","sgo")},
+  vignes:function(){var d="";for(var i=0;i<6;i++)d+="M4 "+(58+i*2)+"H96";return sp(d,"stl")},
+  colline:function(){S.top=[56,28];return sp("M0 "+G+"Q30 40 56 28Q78 34 100 "+G+"Z","sb")},
+  chenes:function(a){var s="";if(a==="dense"){for(var i=0;i<9;i++)s+=tree(6+i*11,G,1.1+(i%3)*.15);return s}
+    if(a==="tall"){for(var j=0;j<6;j++)s+=sr(10+j*16,24,2,32,"stk")+sc(11+j*16,22,6,"st")+sc(7+j*16,26,4,"st")+sc(15+j*16,26,4,"st");return s}
+    return tree(10,G,1)+tree(22,G,.8)+tree(80,G,.9)+tree(91,G,1.1)},
+  chene:function(a){var b=a==="big",s=sr(b?46:47,b?30:36,b?8:6,G-(b?30:36),"stk");[[50,b?20:28,b?14:10],[38,b?26:32,b?10:7],[62,b?26:32,b?10:7],[44,b?14:24,b?9:6],[58,b?15:24,b?9:6]].forEach(function(c){s+=sc(c[0],c[1],c[2],"st")});return s},
+  sapins:function(a){var s="";if(a==="dense"){for(var i=0;i<12;i++)s+=fir(4+i*8.4,G,1+(i%3)*.25);return s}return fir(8,G,1)+fir(16,G,.8)+fir(84,G,.9)+fir(93,G,1.1)},
+  pins:function(){return pine(10,G,1.1)+pine(24,G,.9)+pine(78,G,1)+pine(92,G,1.2)},
+  tordus:function(){var s="";for(var i=0;i<6;i++){var x=10+i*16;s+=sp("M"+x+" "+G+"Q"+(x+10)+" "+(G-4)+" "+(x+6)+" "+(G-14)+"T"+(x+7)+" "+(G-34),"stw")+se(x+7,G-35,5,2.4,"st")}return s},
+  bambous:function(){var s="";for(var i=0;i<14;i++){var x=4+i*7;s+=sp("M"+x+" "+G+"V4","sbm");for(var y=12;y<G;y+=10)s+=sp("M"+(x-1.2)+" "+y+"h2.4","sl");s+=sp("M"+x+" "+(14+i%3*6)+"l4 -3","stl")}return s},
+  sequoia:function(){return sp("M42 "+G+"L45 14H55L58 "+G+"Z","sseq")+sp("M47 20V52M52 18V52","sh")+sc(50,10,10,"st")+sc(40,16,6,"st")+sc(60,16,6,"st")+sc(20,38,4,"st")+sr(19,42,2,14,"stk")+sp("M18 "+G+"h4","sl")},
+  arbreSeul:function(){return sr(48,40,3,16,"stk")+sp("M36 40Q50 32 64 40Q50 42 36 40Z","st")},
+  arbreOr:function(){return sp("M50 "+G+"V30M50 42L40 30M50 36L60 26M50 30L44 20M50 30L56 18M40 30L36 24M60 26L66 22","sgld")+sc(44,20,1.4,"sgo")+sc(56,18,1.4,"sgo")+sc(36,24,1.2,"sgo")+sc(66,22,1.2,"sgo")},
+  if:function(){return sp("M50 "+G+"V40","stw")+sp("M30 46Q34 14 50 10Q66 14 70 46Q50 52 30 46Z","sif")},
+  aubepine:function(){var s=sr(24,40,2.4,16,"stk")+sc(26,34,9,"st");[[22,30],[28,28],[32,34],[20,36],[26,38],[30,31]].forEach(function(p){s+=sc(p[0],p[1],1,"so")});return s},
+  cerisier:function(){var s=sp("M50 "+G+"V32M50 36Q40 30 32 34M50 34Q60 28 68 32","stw");for(var i=0;i<40;i++){var a=i/40*Math.PI,x=50+Math.cos(a)*28*(.4+(i%5)*.15),y=30+(i%7)*3.4;s+=sc(x,y,1.3,"sfl2")}return sp("M26 34Q50 14 74 34","sh")+s},
+  frene:function(){var s=sp("M44 "+G+"L46 28H54L56 "+G+"Z","stk")+sp("M44 "+G+"Q30 60 18 66M56 "+G+"Q70 60 82 66M50 "+G+"V68","stw");[[50,14,16],[32,22,10],[68,22,10],[40,10,8],[60,10,8]].forEach(function(c){s+=sc(c[0],c[1],c[2],"st")});return s+sc(50,8,2,"sgo")+sc(18,66,1.6,"sgo")+sc(82,66,1.6,"sgo")},
+  pommierOr:function(){var s=PR.chene("big");[[42,18],[56,14],[64,26],[36,28],[50,26],[58,22]].forEach(function(p){s+=sc(p[0],p[1],1.6,"sgo")});return s},
+  pommiers:function(){var s="";[[32,40],[50,34],[66,40]].forEach(function(p){s+=sr(p[0]-.8,p[1],1.6,8,"stk")+sc(p[0],p[1]-2,5,"st")+sc(p[0]-2,p[1]-3,1,"sgo")+sc(p[0]+2,p[1]-1,1,"sgo")});return s},
+  dragon:function(){return sp("M30 "+G+"Q36 46 44 50T56 44T66 48","sdra")+sc(66.5,47.5,.7,"sk2")},
+  cedres:function(){var s="";[[26,1],[52,1.3],[78,1]].forEach(function(t){var x=t[0],k=t[1];s+=sr(x-1,G-20*k,2,20*k,"stk");for(var i=0;i<3;i++){var y=G-10*k-i*7*k,w=(14-i*3)*k;s+=sp("M"+(x-w)+" "+y+"Q"+x+" "+(y-5*k)+" "+(x+w)+" "+y+"Z","st")}});return s},
+  moai:function(){var s="";[[34,1],[46,1.15],[58,1],[68,.9]].forEach(function(m){var x=m[0],k=m[1];s+=sp("M"+r1(x-3*k)+" 50L"+r1(x-3.4*k)+" "+r1(50-12*k)+"Q"+x+" "+r1(50-15*k)+" "+r1(x+3.4*k)+" "+r1(50-12*k)+"L"+r1(x+3*k)+" 50Z","sm")+sp("M"+r1(x-2*k)+" "+r1(50-9*k)+"h"+r1(4*k),"sl")});return s},
+  epee:function(){return sp("M50 "+G+"V30","sgl2")+sp("M45 34H55","sgl2")+sc(50,28,1.6,"sgo")},
+};
+function sceneSVG(c){
+  S.top=null;
+  var toks=c.sc.split(" "),body="";
+  if(!toks.some(function(t){return /^(sol|mer|gorge|glacier|cascade|bluehole)/.test(t)||t==="lac:grand"||t==="lac:glace"}))toks.unshift("sol");
+  toks.forEach(function(t){var p=t.split(":");if(PR[p[0]])body+=PR[p[0]](p[1])});
+  return '<svg viewBox="0 0 100 70" aria-hidden="true"><rect class="sky" width="100" height="70"/>'+body+'</svg>';
+}
+
+/* ---------- Cartes de légende ---------- */
+var FAM={
+  mont:{n:"Montagnes",src:"escalade",d:"Gagnées en grimpant.",code:"M"},
+  eau:{n:"Eaux",src:"natation",d:"Gagnées en nageant.",code:"E"},
+  foret:{n:"Forêts",src:"maison",d:"Gagnées avec les séances maison.",code:"F"}
+};
+var RAR=["Commune","Rare","Épique","Légendaire","Unique"];
+var RDOT=["●","●●","●●●","★","◆"];
+var FRAG=[5,15,40,100,0];
+var FRAG_COST=60;
+var CARDS=RAW.map(function(a,i){return {id:"c"+pad(i+1),fam:a[0],r:a[1],n:a[2],pays:a[3],reg:a[4],alt:a[5],sc:a[6],lg:a[7],an:a[8]}});
+var BYID={},BYNAME={};CARDS.forEach(function(c){BYID[c.id]=c;BYNAME[c.n]=c});
+["mont","eau","foret"].forEach(function(f){
+  CARDS.filter(function(c){return c.fam===f}).sort(function(a,b){return a.r-b.r||CARDS.indexOf(a)-CARDS.indexOf(b)}).forEach(function(c,i,l){c.code=FAM[f].code+" "+pad(i+1);c.ord=i;c.tot=l.length});
+});
+var SETS=[
+ {id:"arthur",n:"La Table ronde",d:"Les lieux de la légende arthurienne.",c:["Forêt de Brocéliande","Fontaine de Barenton","Val sans Retour","Tombeau de Merlin","Arbre d'Or","Miroir aux Fées","Glastonbury Tor","Château de Comper","Hotié de Viviane","Épine de Glastonbury","Îles Scilly","Montserrat"]},
+ {id:"bzh",n:"Bretagne des légendes",d:"Korrigans, villes englouties et caps du bout du monde.",c:["Chaos de Huelgoat","Baie des Trépassés","Pointe du Raz","Baie de Douarnenez","Île de Sein","Île d'Ouessant","Mer d'Iroise","Lande de Cojoux","Chêne de Guillotin","Forêt de Brocéliande"]},
+ {id:"grece",n:"Terres grecques",d:"Dieux, oracles et héros de la mythologie.",c:["Mont Olympe","Mont Ida","Oracle de Dodone","Cascade du Styx","Santorin","Charybde et Scylla","Les Météores","Kalymnos"]},
+ {id:"bleau",n:"Bleau",d:"Les grands sites de la forêt de Fontainebleau.",c:["Forêt de Fontainebleau","Bas Cuvier","Éléphant de Larchant","Gorges d'Apremont","Franchard","Rocher Canon","Dame Jouanne"]},
+ {id:"falaises",n:"Falaises de légende",d:"Les spots qui ont écrit l'histoire de la grimpe.",c:["Gorges du Verdon","Céüse","Buoux","Saussois","Siurana","Margalef","Frankenjura","El Capitan","Half Dome","Rocklands","Hampi","Albarracín","Stanage","Calanques"]},
+ {id:"toits",n:"Toits du monde",d:"Les sommets mythiques de l'alpinisme.",c:["Mont Kailash","Chomolungma","Kilimandjaro","Mont Fuji","Cervin","Mont Blanc","Eiger","Cerro Torre","Mont Ararat"]},
+ {id:"englouties",n:"Mondes engloutis",d:"Villes et pays disparus sous les eaux.",c:["Baie de Douarnenez","Santorin","Îles Scilly","Lac Svetloïar","Yonaguni","Lac de Paladru","Lac de Grand Lieu","Lac de Sainte Croix","Lac de Serre Ponçon"]},
+ {id:"abysses",n:"Abîmes et monstres",d:"Tourbillons, gouffres et créatures des profondeurs.",c:["Loch Ness","Charybde et Scylla","Maelström","Corryvreckan","Triangle des Bermudes","Mer des Sargasses","Gouffre de Padirac","Fontaine de Vaucluse","Blue Hole","Cénotes"]},
+ {id:"arbres",n:"Arbres millénaires",d:"Les plus vieux et les plus grands arbres du monde.",c:["If de Fortingall","Général Sherman","Arbre du Ténéré","Chêne de Guernica","Takizakura","Futaie Colbert","Futaie des Clos","Chêne de Guillotin","Arbre de la Bodhi","Hyperion","Arbre aux fées de Domrémy"]},
+ {id:"sud",n:"Soleil du Sud",d:"Calcaire chaud, cigales et Méditerranée.",c:["Calanques","Sainte Victoire","Dentelles de Montmirail","Mont Ventoux","Buoux","Calanque d'En Vau","Pic Saint Loup","Cirque de Mourèze","Rocher de la Baume","Orpierre","Pont du Gard"]},
+ {id:"sacrees",n:"Montagnes sacrées",d:"Les sommets où vivent les dieux.",c:["Mont Kailash","Mont Fuji","Mont Olympe","Pic du Canigou","Montségur","Mont Kurama","Mont Ararat","Puy de Dôme","Chomolungma"]},
+ {id:"pyrenees",n:"Pyrénées",d:"De la Catalogne au Pays basque.",c:["Pic du Canigou","Brèche de Roland","Cirque de Gavarnie","Pic du Midi d'Ossau","Lac de Gaube","Montségur","Forêt d'Iraty"]},
+ {id:"alpes",n:"Alpes",d:"Glaciers, lacs et grandes faces.",c:["Mont Blanc","Mer de Glace","Lac Blanc","Mont Aiguille","Dent de Crolles","Presles","Lac d'Annecy","Lac du Bourget","Cervin","Eiger"]}
+];
+SETS.forEach(function(s){s.ids=s.c.map(function(n){return BYNAME[n]?BYNAME[n].id:null}).filter(Boolean)});
+function setsOf(c){return SETS.filter(function(s){return s.ids.indexOf(c.id)>=0})}
+var GRADES=["","3","4a","4b","4c","5a","5b","5c","6a","6a+","6b","6b+","6c","6c+","7a","7a+","7b","7b+","7c","7c+","8a","8a+","8b","8b+","8c","8c+","9a"];
+function gradeOf(n){if(!n)return "pas encore";return GRADES[Math.max(1,Math.round(n*26/CARDS.length))]}
+function hash(s){var h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+function rng(seed){var a=seed||1;return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function ring(cx,cy,r,p,sx){var d="";for(var i=0;i<=36;i++){var t=i/36*Math.PI*2,rr=r*(1+p[0]*Math.sin(3*t+p[1])+p[2]*Math.sin(5*t+p[3]));d+=(i?"L":"M")+r1(cx+rr*Math.cos(t)*sx)+" "+r1(cy+rr*Math.sin(t))}return d+"Z"}
+function rings(R,cx,cy,n,step,start,cls,sx){var p=[.06+R()*.1,R()*6,.03+R()*.06,R()*6],s="";for(var k=0;k<n;k++)s+='<path class="'+cls+'" d="'+ring(cx,cy,start+k*step,p,sx)+'"/>';return s}
+function where(c){return c.reg+(c.pays&&c.reg.indexOf(c.pays)<0?" · "+c.pays:"")}
+function cardHTML(c,mini){
+  return '<div class="card f-'+c.fam+" r"+c.r+(mini?" mini":"")+'"><div class="cin">'
+    +'<div class="ctop"><span>'+FAM[c.fam].n+'</span><span class="rar" title="'+RAR[c.r]+'">'+(mini?RDOT[c.r]:RAR[c.r])+'</span></div>'
+    +'<div class="cart">'+sceneSVG(c)+'</div>'
+    +'<div class="cname">'+esc(c.n)+'</div>'
+    +'<div class="creg">'+esc(where(c))+'</div>'
+    +'<p class="clg">'+esc(c.lg)+'</p>'
+    +'<div class="cfoot"><span>'+RDOT[c.r]+(c.alt?" · "+esc(c.alt):"")+'</span><span>'+(c.r===4?"Exemplaire unique":c.code+" / "+c.tot)+'</span></div>'
+    +'</div></div>';
+}
+function unknownHTML(c){return '<div class="card unk mini f-'+c.fam+(c.r===4?" uq":"")+'"><div class="cin"><b>'+(c.r===4?"◆":"?")+'</b><span>'+c.code+'</span></div></div>'}
+function ficheHTML(c){
+  var st=setsOf(c);
+  return '<div class="fiche f-'+c.fam+'"><dl>'
+    +'<div><dt>Pays</dt><dd>'+esc(c.pays)+'</dd></div><div><dt>Région</dt><dd>'+esc(c.reg)+'</dd></div>'
+    +(c.alt?'<div><dt>'+(/fond|sous/.test(c.alt)?"Profondeur":"Altitude")+'</dt><dd>'+esc(c.alt)+'</dd></div>':"")
+    +'<div><dt>Rareté</dt><dd>'+RAR[c.r]+'</dd></div></dl>'
+    +'<h4>Histoire et légende</h4><p>'+esc(c.lg)+'</p><h4>Le saviez vous ?</h4><p>'+esc(c.an)+'</p>'
+    +(st.length?'<h4>Collections</h4><p>'+st.map(function(s){return esc(s.n)}).join(", ")+'</p>':"")+'</div>';
+}
+var COMPASS='<svg viewBox="0 0 60 60" fill="none" stroke="currentColor" stroke-width="2"><circle cx="30" cy="30" r="24"/><circle cx="30" cy="30" r="17" stroke-dasharray="2 3"/><path d="M30 4L35 30L30 56L25 30Z" fill="currentColor" stroke="none" opacity=".85"/><path d="M4 30L30 26L56 30L30 34Z" fill="currentColor" stroke="none" opacity=".4"/></svg>';
+/* ---------- État ---------- */
+var today=new Date();
+var curMon=mondayOf(today);
+var viewMon=curMon;
+var overrides={};
+function obj(x){return x&&typeof x==="object"&&!Array.isArray(x)?Object.assign({},x):{}}
+function norm(d){d=d||{};return {done:obj(d.done),awarded:obj(d.awarded),packs:Array.isArray(d.packs)?d.packs.filter(function(p){return p&&p.t}).slice(0,200):[],coll:obj(d.coll),frag:Math.max(0,+d.frag||0),weeks:obj(d.weeks)}}
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+var store=norm(null);
+try{
+  var v2=lsGet("carnet-v2");
+  if(v2)store=norm(JSON.parse(v2));
+  else{var d0=JSON.parse(lsGet("carnet-done")||"{}");store.done=obj(d0)}
+}catch(e){}
+try{overrides=obj(JSON.parse(lsGet("carnet-ov")||"{}"))}catch(e){}
+
+function autoLetter(mon){var i=weekIdx(mon);return (((i%2)+2)%2)===0?"A":"B"}
+function letterOf(mon){return overrides[iso(mon)]||autoLetter(mon)}
+function cycleWeek(mon){var i=weekIdx(mon);return i<0?null:(i%6)+1}
+function dKey(mon,di,k){return iso(mon)+"|"+di+"|"+k}
+function parseIso(s){var p=s.split("-");return new Date(+p[0],+p[1]-1,+p[2])}
+function dateOfKey(dk){var p=dk.split("|");return addDays(parseIso(p[0]),+p[1])}
+function famOfKey(k){return k.indexOf("esc")===0?"mont":(k.indexOf("nat")===0?"eau":"foret")}
+function allowed(dk){return iso(dateOfKey(dk))<=iso(today)}
+
+/* ---------- Synchronisation ---------- */
+var dbRef=null,writing=false,again=false;
+function setSync(where){document.getElementById("sync").textContent=where==="compte"?"Topo de la semaine · progression enregistrée sur ton compte":"Topo de la semaine"}
+function persist(){lsSet("carnet-v2",JSON.stringify(store));queueWrite()}
+function queueWrite(){
+  if(!dbRef)return;
+  if(writing){again=true;return}
+  writing=true;
+  var body=JSON.parse(JSON.stringify(store));body.maj=new Date().toISOString();
+  dbRef.set(body).catch(function(e){
+    if(e&&(e.code==="invalid_argument"||e.code==="revoked"||e.code==="not_granted")){dbRef=null;setSync("appareil")}
+  }).then(function(){writing=false;if(again){again=false;queueWrite()}});
+}
+function initDb(){
+  if(!window.claude||typeof window.claude.use!=="function")return;
+  Promise.all([window.claude.use("db"),window.claude.use("user")]).then(function(r){
+    var db=r[0],user=r[1];
+    if(!db||!user)return null;
+    return user.id().then(function(uid){
+      if(!uid)return;
+      dbRef=db.collection("data/users/"+uid).doc("suivi");
+      var first=true;
+      dbRef.onSnapshot(function(snap){
+        if(writing||again){first=false;return}
+        if(snap.exists){
+          store=norm(snap.data());
+          lsSet("carnet-v2",JSON.stringify(store));
+          if(reconcile())persist();
+          renderAll();
+          if(openCtx&&!T.view)renderDetail();
+        } else if(first){reconcile();queueWrite()}
+        first=false;setSync("compte");
+      },function(){dbRef=null;setSync("appareil")});
+    });
+  }).catch(function(){});
+}
+
+/* ---------- Récompenses ---------- */
+function weekSessions(mon){
+  var tpl=TPL[letterOf(mon)],out=[];
+  for(var di=0;di<7;di++)tpl.jours[di].forEach(function(it){if(it.k!=="repos")out.push(dKey(mon,di,it.k))});
+  return out;
+}
+function weekCheck(monIso){
+  var wk="w|"+monIso;
+  if(store.awarded[wk])return false;
+  var keys=weekSessions(parseIso(monIso));
+  for(var i=0;i<keys.length;i++)if(!store.done[keys[i]])return false;
+  store.awarded[wk]=1;store.weeks[monIso]=1;store.packs.push({t:"sommet"});
+  return true;
+}
+function award(dk){
+  if(store.awarded[dk])return null;
+  store.awarded[dk]=1;
+  var f=famOfKey(dk.split("|")[2]);
+  store.packs.push({t:f});
+  var sommet=weekCheck(dk.split("|")[0]);
+  return {f:f,sommet:sommet};
+}
+function reconcile(){
+  var changed=false;
+  Object.keys(store.done).forEach(function(dk){if(dk.split("|").length===3&&!store.awarded[dk]&&allowed(dk)){award(dk);changed=true}});
+  return changed;
+}
+function toggle(dk){
+  if(store.done[dk]){delete store.done[dk];persist();renderAll();return}
+  if(!allowed(dk))return;
+  store.done[dk]=true;
+  var a=award(dk);
+  persist();renderAll();
+  if(a){
+    if(a.sommet)toast("Semaine complète","Paquet "+FAM[a.f].n+" et Paquet du Sommet gagnés.");
+    else toast("Séance validée","Paquet "+FAM[a.f].n+" gagné.");
+  }
+}
+
+
+/* ---------- Paquets ---------- */
+function roll(min){var r=Math.random(),v=r<.03?3:(r<.11?2:(r<.36?1:0));return Math.max(v,min)}
+function pick(fam,r){var l=CARDS.filter(function(c){return (!fam||c.fam===fam)&&c.r===r});return l[Math.floor(Math.random()*l.length)]}
+function drawCard(fam,min,uq,taken){
+  if(Math.random()<uq){
+    var u=CARDS.filter(function(c){return c.r===4&&(!fam||c.fam===fam)&&!store.coll[c.id]&&!taken[c.id]});
+    if(u.length){var x=u[Math.floor(Math.random()*u.length)];taken[x.id]=1;return x}
+  }
+  return pick(fam,roll(min));
+}
+function genPack(t){
+  var tk={};
+  if(t==="sommet")return [drawCard(null,0,.01,tk),drawCard(null,1,.02,tk),drawCard(null,2,.05,tk)];
+  if(t==="frag")return [drawCard(null,0,.01,tk),drawCard(null,0,.01,tk),drawCard(null,1,.02,tk)];
+  return [drawCard(t,0,.01,tk),drawCard(t,0,.01,tk),drawCard(null,1,.01,tk)];
+}
+function checkSets(){
+  var done=[];
+  SETS.forEach(function(s){
+    var k="s|"+s.id;if(store.awarded[k])return;
+    if(s.ids.every(function(id){return store.coll[id]})){store.awarded[k]=1;store.packs.push({t:"sommet"});done.push(s.n)}
+  });
+  return done;
+}
+function packName(t){return t==="sommet"?"du Sommet":(t==="frag"?"de fragments":FAM[t].n)}
+function packFam(t){return FAM[t]?t:"all"}
+function audio(){try{if(!T.ac)T.ac=new (window.AudioContext||window.webkitAudioContext)();else if(T.ac.state==="suspended")T.ac.resume()}catch(e){T.ac=null}return T.ac}
+function noise(dur,freq,gain){
+  var ac=T.ac;if(!T.sound||!ac)return;
+  try{var n=Math.floor(ac.sampleRate*dur),buf=ac.createBuffer(1,n,ac.sampleRate),d=buf.getChannelData(0);
+    for(var i=0;i<n;i++){var k=1-i/n;d[i]=(Math.random()*2-1)*k*k*(Math.random()<.25?1:.35)}
+    var src=ac.createBufferSource(),f=ac.createBiquadFilter(),g=ac.createGain();src.buffer=buf;f.type="highpass";f.frequency.value=freq;g.gain.value=gain;
+    src.connect(f);f.connect(g);g.connect(ac.destination);src.start()}catch(e){}
+}
+function chime(r){var seq=[[660],[660,880],[523,659,784],[523,659,784,1047],[392,523,659,784,1047,1319]][r];seq.forEach(function(f,i){setTimeout(function(){tone(f,r>=3?600:300)},i*(r>=3?110:90))})}
+function noMotion(){return matchMedia("(prefers-reduced-motion: reduce)").matches}
+
+var P=null;
+var ov=document.getElementById("ov"),stage=document.getElementById("stage");
+function openPack(){
+  hideToast();
+  if(!store.packs.length)return;
+  P={t:store.packs[0].t,res:null,i:-1,flipped:false,sets:[]};
+  ov.hidden=false;document.body.style.overflow="hidden";
+  drawStage();
+}
+function applyPack(){
+  store.packs.shift();
+  var cards=genPack(P.t);
+  P.res=cards.map(function(c){var isNew=!store.coll[c.id];store.coll[c.id]=(store.coll[c.id]||0)+1;var fr=isNew?0:FRAG[c.r];store.frag+=fr;return {c:c,isNew:isNew,fr:fr}});
+  P.sets=checkSets();
+  persist();
+}
+function closePack(){P=null;ov.hidden=true;stage.innerHTML="";document.body.style.overflow="";renderAll()}
+function packFace(t){
+  var R=rng(hash(t+"pk")),art='<svg viewBox="0 0 100 140" preserveAspectRatio="xMidYMid slice">'+rings(R,62,88,12,6,4,"",1).replace(/ class=""/g,"")+'</svg>';
+  var sub=t==="sommet"?"Une carte épique ou mieux":(t==="frag"?"Échangé contre "+FRAG_COST+" fragments":"Séance de "+FAM[t].src);
+  return '<div class="pface">'+art+'<span class="pk1">Carnet Grimpe et Nage</span><span class="pk2">Lieux de légende</span><span class="pk3">'+esc(sub)+'</span><span class="pk4">3 cartes</span><span class="dots"></span></div>';
+}
+function zig(){var z=[];for(var i=0;i<=20;i++)z.push((i*5)+"% "+(i%2?19:23)+"%");return z}
+function drawStage(){
+  var h="";
+  if(P.i<0){
+    var z=zig(),flap="polygon(0 0,100% 0,"+z.slice().reverse().join(",")+")",body="polygon("+z.join(",")+",100% 100%,0 100%)";
+    h='<h2>Paquet '+packName(P.t)+'</h2><p class="hint">Glisse le doigt le long des pointillés pour le déchirer</p>'
+     +'<div class="pk f-'+packFam(P.t)+'" id="pk" role="button" tabindex="0" aria-label="Déchirer le paquet">'
+     +'<div class="pkb" style="clip-path:'+body+'">'+packFace(P.t)+'</div>'
+     +'<div class="rise" id="rise"></div>'
+     +'<div class="pkf" id="pkf" style="clip-path:'+flap+'">'+packFace(P.t)+'</div>'
+     +'<div class="tl" id="tl"></div><div class="bits" id="bits"></div></div>'
+     +'<button class="linkbtn" id="pkLater">Plus tard</button>';
+    stage.innerHTML=h;
+    bindTear();
+    document.getElementById("pkLater").onclick=closePack;
+    return;
+  }
+  if(P.i<P.res.length){
+    var x=P.res[P.i],c=x.c,badge=c.r===4?'<span class="badge uq">Exemplaire unique</span>':(x.isNew?'<span class="badge new">Nouvelle carte</span>':'<span class="badge dbl">Double : +'+x.fr+' fragments</span>');
+    h='<h2>Carte '+(P.i+1)+' sur 3</h2>'
+     +'<div class="flipwrap"><div class="burst b'+c.r+'" id="burst"></div>'
+     +'<button class="flip f-'+c.fam+' ra'+c.r+(P.flipped?" on":"")+'" id="fl" aria-label="Retourner la carte"><div class="in"><div class="face"><div class="cback">'+COMPASS+'<b>Lieu de légende</b><i>Touche pour retourner</i></div></div><div class="face front">'+cardHTML(c)+'</div></div></button></div>'
+     +'<div id="after" class="after"'+(P.flipped?"":" hidden")+'>'+badge
+     +'<button class="linkbtn" id="ficheBtn">Lire la fiche</button><div id="ficheBox" hidden>'+ficheHTML(c)+'</div>'
+     +'<button class="btn primary" id="nx">'+(P.i<2?"Carte suivante":"Voir le butin")+'</button></div>';
+    stage.innerHTML=h;
+    var fl=document.getElementById("fl");
+    fl.onclick=function(){
+      if(P.flipped)return;P.flipped=true;fl.classList.add("on");
+      setTimeout(function(){
+        var bu=document.getElementById("burst");if(!bu)return;if(c.r>=1)bu.classList.add("go");
+        chime(c.r);if(c.r>=2)buzz(c.r>=3?[60,40,60,40,120]:[60,40,60]);
+        var a=document.getElementById("after");if(a){a.hidden=false;document.getElementById("nx").focus()}
+      },noMotion()?0:330);
+    };
+    document.getElementById("ficheBtn").onclick=function(){var b=document.getElementById("ficheBox");b.hidden=!b.hidden;this.textContent=b.hidden?"Lire la fiche":"Masquer la fiche"};
+    document.getElementById("nx").onclick=function(){P.i++;P.flipped=false;drawStage()};
+    fl.focus();
+    return;
+  }
+  var nNew=P.res.filter(function(x){return x.isNew}).length,fr=P.res.reduce(function(a,x){return a+x.fr},0);
+  h='<h2>Butin</h2><p class="hint">'+(nNew?nNew+" nouvelle"+(nNew>1?"s":"")+" carte"+(nNew>1?"s":""):"Que des doubles cette fois")+(fr?" · +"+fr+" fragments":"")+'</p>'
+   +'<div class="loot">'+P.res.map(function(x){return '<div class="pop">'+cardHTML(x.c,true)+'</div>'}).join("")+'</div>'
+   +(P.sets.length?'<p class="setdone">Collection complète : '+P.sets.map(esc).join(", ")+'. Un Paquet du Sommet t’attend !</p>':"")
+   +(store.packs.length?'<button class="btn primary" id="more">Ouvrir le paquet suivant ('+store.packs.length+')</button>':"")
+   +'<button class="btn" id="done">Ranger dans l’album</button>';
+  stage.innerHTML=h;
+  var m=document.getElementById("more");if(m)m.onclick=openPack;
+  document.getElementById("done").onclick=closePack;
+  document.getElementById("done").focus();
+}
+function bindTear(){
+  var pk=document.getElementById("pk"),pkf=document.getElementById("pkf"),tl=document.getElementById("tl");
+  var st=null,prog=0,moved=0,done=false,lastTick=0,w=1;
+  function setProg(p){
+    pkf.style.transition="none";
+    pkf.style.transform="translate("+(p*4)+"px,"+(-p*10)+"px) rotate("+(-p*7)+"deg)";
+    tl.style.width=(p*100)+"%";
+    var tick=Math.floor(p*10);if(tick>lastTick){lastTick=tick;noise(.04,2500,.25);buzz(6)}
+  }
+  function open(){
+    if(done)return;done=true;
+    applyPack();
+    audio();noise(.45,1600,.55);buzz([20,30,70]);
+    tl.style.width="100%";
+    pkf.style.transition="";pkf.style.transform="";pkf.classList.add("gone");pk.classList.add("open");
+    var bits=document.getElementById("bits"),bh="";
+    for(var i=0;i<16;i++){var ang=-Math.PI*(.1+.8*Math.random()),dist=60+Math.random()*90;
+      bh+='<i style="left:'+(5+i*6)+'%;--dx:'+Math.round(Math.cos(ang)*dist*(i%2?1:-1))+'px;--dy:'+Math.round(Math.sin(ang)*dist)+'px;--r:'+Math.round(Math.random()*540-270)+'deg;animation-delay:'+(Math.random()*.08).toFixed(2)+'s"></i>'}
+    bits.innerHTML=bh;
+    var rise=document.getElementById("rise");
+    rise.innerHTML=P.res.map(function(x,k){return '<div class="cbmini f-'+x.c.fam+' ra'+x.c.r+'" style="--k:'+k+'">'+COMPASS+'</div>'}).join("");
+    var nm=noMotion();
+    setTimeout(function(){rise.classList.add("up")},nm?0:300);
+    setTimeout(function(){if(P&&P.i<0){P.i=0;P.flipped=false;drawStage()}},nm?0:1350);
+  }
+  pk.addEventListener("pointerdown",function(e){if(done)return;st={x:e.clientX,y:e.clientY};moved=0;w=pk.getBoundingClientRect().width;audio();try{pk.setPointerCapture(e.pointerId)}catch(_){}});
+  pk.addEventListener("pointermove",function(e){if(!st||done)return;var dx=Math.abs(e.clientX-st.x);moved=Math.max(moved,dx+Math.abs(e.clientY-st.y));prog=Math.min(1,dx/(w*.7));setProg(prog);if(prog>=1)open()});
+  function up(){if(!st||done){st=null;return}st=null;if(moved<8||prog>.5)open();else{pkf.style.transition="transform .25s";pkf.style.transform="";tl.style.width="0";prog=0;lastTick=0}}
+  pk.addEventListener("pointerup",up);pk.addEventListener("pointercancel",up);
+  pk.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();audio();open()}});
+  pk.focus();
+}
+function showCard(id){
+  var c=BYID[id];if(!c)return;
+  ov.hidden=false;document.body.style.overflow="hidden";
+  stage.innerHTML='<div class="bigcard">'+cardHTML(c)+'</div>'+(c.r<4?'<p class="hint">Exemplaires : '+store.coll[id]+'</p>':"")+ficheHTML(c)+'<button class="btn" id="cls">Fermer</button>';
+  document.getElementById("cls").onclick=closePack;document.getElementById("cls").focus();
+}
+/* ---------- Toast ---------- */
+var toastT=0;
+function toast(title,msg){
+  var t=document.getElementById("toast");
+  t.innerHTML='<p><b>'+esc(title)+'</b>'+esc(msg)+'</p><button id="tOpen">Ouvrir</button>';
+  t.hidden=false;
+  document.getElementById("tOpen").onclick=function(){closeDetail();openPack()};
+  clearTimeout(toastT);toastT=setTimeout(hideToast,7000);
+}
+function hideToast(){document.getElementById("toast").hidden=true}
+
+/* ---------- Rendu ---------- */
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+var CHECK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+var JABR=["LUN","MAR","MER","JEU","VEN","SAM","DIM"];
+var tab="W";
+
+function renderAll(){renderHead();if(tab==="W")renderWeek();else renderAlbum()}
+function renderHead(){
+  var n=store.packs.length,b=document.getElementById("packBtn"),badge=document.getElementById("packN");
+  badge.hidden=!n;badge.textContent=n;b.classList.toggle("has",n>0);
+  b.setAttribute("aria-label",n?"Ouvrir un paquet ("+n+" en attente)":"Aucun paquet à ouvrir");
+}
+function renderWeek(){
+  var mon=viewMon,letter=letterOf(mon),auto=autoLetter(mon),w=cycleWeek(mon),ph=phaseOf(w),tpl=TPL[letter];
+  var sun=addDays(mon,6);
+  document.getElementById("wkBig").innerHTML="Semaine "+letter+(w?"<span>S"+w+" du cycle</span>":"<span>avant le cycle</span>");
+  document.getElementById("wkSub").textContent="Du "+fmt(mon)+" au "+fmt(sun)+" "+sun.getFullYear();
+  ["A","B"].forEach(function(l){var b=document.getElementById("seg"+l);b.setAttribute("aria-pressed",String(letter===l));b.innerHTML=l+(auto===l?" <small>auto</small>":"")});
+  document.getElementById("backNow").hidden=(iso(mon)===iso(curMon));
+  document.getElementById("phaseTxt").textContent=w?PHASES[ph]:"Contenu de base";
+  document.getElementById("noteWeek").textContent=NOTE[letter]+(overrides[iso(mon)]?" Type de semaine choisi à la main.":"");
+  var html="",bars="",nTot=0,nDone=0,todayIso=iso(today);
+  for(var di=0;di<7;di++){
+    var date=addDays(mon,di),isToday=iso(date)===todayIso,work=tpl.travail.indexOf(di)>=0,future=iso(date)>todayIso;
+    html+='<article class="pitch'+(isToday?" today":"")+'"><div class="relay"><b>'+JABR[di]+'</b><span>'+date.getDate()+'/'+pad(date.getMonth()+1)+'</span></div>'
+      +'<div class="phead"><span class="pname">'+JOURS[di]+'</span><span class="pnote">'+(isToday?"aujourd’hui":(work?"journée de travail":"jour libre"))+'</span></div>';
+    tpl.jours[di].forEach(function(it){
+      var s=session(it.k,ph),dk=dKey(mon,di,it.k),done=!!store.done[dk];
+      var meta=s.t==="nat"?s.duree+" · "+s.total+" m":s.duree;if(it.q)meta+=" · "+it.q;
+      html+='<div class="row t-'+s.t+(done?" done":"")+'"><button class="open" data-di="'+di+'" data-k="'+it.k+'"><span class="rtitle">'+esc(s.titre)+'</span><span class="rmeta">'+esc(meta)+'</span></button>';
+      if(s.t!=="rep"){
+        nTot++;if(done)nDone++;
+        bars+='<i class="t-'+s.t+(done?" on":"")+'"></i>';
+        var dis=future&&!done;
+        html+='<button class="check" data-dk="'+dk+'" aria-pressed="'+done+'"'+(dis?" disabled":"")+' aria-label="'+(dis?"À cocher le jour même : ":(done?"Décocher ":"Cocher "))+esc(s.titre)+'">'+CHECK+'</button>';
+      }
+      html+='</div>';
+    });
+    html+='</article>';
+  }
+  document.getElementById("days").innerHTML=html;
+  document.getElementById("bars").innerHTML=bars;
+  document.getElementById("progTxt").innerHTML="<b>"+nDone+"</b> séance"+(nDone>1?"s":"")+" sur "+nTot+" · "+(store.awarded["w|"+iso(mon)]?"sommet atteint":"sommet à "+(nTot-nDone)+" séance"+(nTot-nDone>1?"s":""));
+}
+var atab="mont";
+function renderAlbum(){
+  var n=Object.keys(store.coll).filter(function(k){return BYID[k]}).length,weeks=Object.keys(store.weeks).length;
+  var uq=CARDS.filter(function(c){return c.r===4}),uqn=uq.filter(function(c){return store.coll[c.id]}).length;
+  var h='<div class="stats"><div class="stat"><small>Découvertes</small><b>'+n+' / '+CARDS.length+'</b><i>'+weeks+' sommet'+(weeks>1?"s":"")+'</i></div>'
+    +'<div class="stat"><small>Cotation</small><b>'+gradeOf(n)+'</b><i>objectif : 9a</i></div>'
+    +'<div class="stat"><small>Uniques</small><b>'+uqn+' / '+uq.length+'</b><i>une seule fois</i></div></div>';
+  var pct=Math.min(100,Math.round(store.frag/FRAG_COST*100));
+  h+='<div class="fragbar"><span><b>'+store.frag+'</b> fragments</span><span class="meter"><i style="width:'+pct+'%"></i></span>'
+    +'<button class="btn" id="fragBtn" style="width:auto;padding:8px 12px"'+(store.frag<FRAG_COST?" disabled":"")+'>Échanger '+FRAG_COST+' contre un paquet</button></div>';
+  h+='<div class="subtabs" role="tablist">'+[["mont","Montagnes"],["eau","Eaux"],["foret","Forêts"],["sets","Collections"]].map(function(t){
+    var cnt=t[0]==="sets"?SETS.filter(function(s){return store.awarded["s|"+s.id]}).length+"/"+SETS.length:CARDS.filter(function(c){return c.fam===t[0]&&store.coll[c.id]}).length+"/"+CARDS.filter(function(c){return c.fam===t[0]}).length;
+    return '<button role="tab" data-at="'+t[0]+'" aria-selected="'+(atab===t[0])+'" class="'+(FAM[t[0]]?"f-"+t[0]:"f-all")+'">'+t[1]+' <small>'+cnt+'</small></button>'}).join("")+'</div>';
+  if(atab==="sets"){
+    h+='<p class="note">Complète une collection pour gagner un Paquet du Sommet.</p>';
+    SETS.forEach(function(s){
+      var got=s.ids.filter(function(id){return store.coll[id]}).length,ok=store.awarded["s|"+s.id];
+      h+='<section class="set'+(ok?" ok":"")+'"><div class="sethead"><b>'+esc(s.n)+'</b><span>'+got+' / '+s.ids.length+(ok?" · Sommet obtenu":"")+'</span></div><p>'+esc(s.d)+'</p><div class="setbar"><i style="width:'+Math.round(got/s.ids.length*100)+'%"></i></div><ul>'
+        +s.ids.map(function(id){var c=BYID[id];return store.coll[id]?'<li class="f-'+c.fam+'"><button class="setc" data-id="'+id+'">'+esc(c.n)+'</button></li>':'<li class="miss">???</li>'}).join("")+'</ul></section>';
+    });
+  } else {
+    var f=atab,list=CARDS.filter(function(c){return c.fam===f}).sort(function(a,b){return a.ord-b.ord});
+    h+='<section class="fam f-'+f+'"><p>'+FAM[f].d+'</p><div class="grid">';
+    list.forEach(function(c){
+      var k=store.coll[c.id];
+      h+=k?'<button class="slot" data-id="'+c.id+'" aria-label="'+esc(c.n)+'">'+(k>1?'<span class="cnt">x'+k+'</span>':"")+cardHTML(c,true)+'</button>':'<div class="slot">'+unknownHTML(c)+'</div>';
+    });
+    h+='</div></section><p class="note">Les doubles deviennent des fragments : 5 pour une commune, 15 pour une rare, 40 pour une épique, 100 pour une légendaire. Les cartes uniques ne tombent qu’une seule fois.</p>';
+  }
+  var v=document.getElementById("viewA");v.innerHTML=h;
+  var fb=document.getElementById("fragBtn");if(fb)fb.onclick=function(){if(store.frag<FRAG_COST)return;store.frag-=FRAG_COST;store.packs.unshift({t:"frag"});persist();openPack()};
+}
+/* ---------- Fiche de séance ---------- */
+var openCtx=null,lastFocus=null;
+var sheet=document.getElementById("sheet"),backdrop=document.getElementById("backdrop");
+function openDetail(di,k){
+  lastFocus=document.activeElement;openCtx={mon:viewMon,di:di,k:k};T.view=false;
+  renderDetail();sheet.hidden=false;backdrop.hidden=false;document.body.style.overflow="hidden";
+  document.getElementById("sClose").focus();
+}
+function closeDetail(){
+  if(sheet.hidden)return;
+  tStop();T.view=false;sheet.hidden=true;backdrop.hidden=true;openCtx=null;document.body.style.overflow="";
+  if(lastFocus&&lastFocus.focus)lastFocus.focus();
+}
+function list(arr){return "<ul>"+arr.map(function(x){return "<li>"+esc(x)+"</li>"}).join("")+"</ul>"}
+function renderDetail(){
+  var c=openCtx,w=cycleWeek(c.mon),ph=phaseOf(w),letter=letterOf(c.mon);
+  var it=TPL[letter].jours[c.di].filter(function(x){return x.k===c.k})[0]||{k:c.k};
+  var s=session(c.k,ph),date=addDays(c.mon,c.di),dk=dKey(c.mon,c.di,c.k),done=!!store.done[dk];
+  sheet.className="sheet t-"+s.t;
+  document.getElementById("sKind").textContent=s.kind+" · "+JOURS[c.di]+" "+fmt(date);
+  document.getElementById("sTitle").textContent=s.titre;
+  document.getElementById("sWhen").textContent=it.q||"";
+  var h='<div class="chips"><span class="chip">Durée totale : '+esc(s.duree)+'</span>'+(s.total?'<span class="chip">'+s.total+' m · '+L(s.total)+' longueurs</span>':"")+'<span class="chip">'+(w?esc(PHASES[ph]):"Avant le cycle")+'</span>'+(s.mat?'<span class="chip">'+esc(s.mat)+'</span>':"")+'</div>';
+  h+='<div class="blk"><h3>Objectif</h3><p>'+esc(s.obj)+'</p></div>';
+  if(s.allure)h+='<div class="blk"><h3>Allure</h3><p>'+esc(s.allure)+'</p></div>';
+  if(s.ech)h+='<div class="blk"><h3>Échauffement</h3>'+list(s.ech)+'</div>';
+  h+='<div class="blk"><h3>'+(s.t==="rep"?"Au programme":"Corps de séance")+'</h3>'+list(s.corps)+'</div>';
+  if(s.segs){
+    var seen={},names=[];
+    s.segs.forEach(function(x){if(x.k==="work"&&!(x.n in seen)){seen[x.n]=EXO[x.n]||x.h||"";names.push(x.n)}});
+    h+='<div class="blk"><h3>Les exercices en images</h3><div class="figs">'+names.map(function(n){
+      return '<div class="fig">'+fig(n)+'<b>'+esc(n)+'</b>'+(ABDOS.indexOf(n)>=0?'<em>abdos</em>':"")+'<span>'+esc(seen[n])+'</span></div>';
+    }).join("")+'</div></div>';
+  }
+  if(s.ret)h+='<div class="blk"><h3>Retour au calme</h3>'+list(s.ret)+'</div>';
+  if(s.t==="nat"){
+    var p=pool(date,c.di);
+    h+='<div class="pool"><b>Piscine Aspirant Dunand, bassin de 25 m</b>'+esc(p.p)+(p.h?" : "+esc(JOURS[c.di].toLowerCase())+" "+esc(p.h)+".":".")+' Dernières entrées 45 min avant la fermeture, évacuation du bassin 30 min avant.</div>';
+  }
+  h+='<div class="actions">';
+  if(s.segs)h+='<button class="btn c" id="goTimer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9.5 2.5h5"/></svg>Lancer le minuteur ('+mmss(sumSegs(s.segs)+10)+')</button>';
+  if(s.t!=="rep"){
+    var ok=allowed(dk)||done;
+    h+='<button class="btn" id="doneBtn" aria-pressed="'+done+'"'+(ok?"":" disabled")+'>'+CHECK+(done?"Séance faite":(ok?"Marquer comme faite":"À cocher le jour même"))+'</button>';
+    if(!store.awarded[dk])h+='<p class="reward">Récompense : un Paquet '+FAM[famOfKey(c.k)].n+'</p>';
+  }
+  h+='</div>';
+  var body=document.getElementById("sBody");body.innerHTML=h;body.scrollTop=0;
+  var g=document.getElementById("goTimer");if(g)g.onclick=function(){openTimer(s)};
+  var d=document.getElementById("doneBtn");if(d)d.onclick=function(){toggle(dk);if(openCtx)renderDetail()};
+}
+
+/* ---------- Minuteur ---------- */
+var T={view:false,segs:[],i:0,left:0,endAt:0,running:false,raf:0,ac:null,beep:-1,sound:true,lock:null,fin:false,figI:-1};
+function openTimer(s){
+  T.view=true;T.fin=false;
+  T.segs=[{k:"prep",n:"Prépare toi",d:10,h:"Ensuite : "+s.segs[0].n}].concat(s.segs);
+  T.i=0;T.left=T.segs[0].d*1000;T.running=false;T.beep=-1;T.figI=-1;
+  var body=document.getElementById("sBody");
+  body.innerHTML='<div class="timer"><div class="tphase" id="tPhase"></div><div class="ring"><svg viewBox="0 0 200 200"><circle class="trk" cx="100" cy="100" r="88"/><circle class="arc" id="tArc" cx="100" cy="100" r="88"/></svg><div class="tnum" id="tNum"></div></div><div class="tfig" id="tFig"></div><div class="tname" id="tName"></div><div class="thint" id="tHint"></div><div class="tprog" id="tProg"></div>'
+   +'<div class="tctl"><button class="btn" id="tReset">Recommencer</button><button class="btn primary" id="tPlay">Démarrer</button><button class="btn" id="tSkip">Passer</button></div>'
+   +'<button class="linkbtn" id="tSnd"></button><button class="btn" id="tBack">Retour à la fiche</button></div>';
+  body.scrollTop=0;
+  document.getElementById("tPlay").onclick=function(){if(T.fin)return;T.running?tPause():tStart()};
+  document.getElementById("tSkip").onclick=function(){next(true)};
+  document.getElementById("tReset").onclick=function(){tStop();openTimer(s)};
+  document.getElementById("tBack").onclick=function(){tStop();T.view=false;renderDetail()};
+  document.getElementById("tSnd").onclick=function(){T.sound=!T.sound;draw()};
+  draw();
+}
+function tone(f,ms){
+  if(!T.sound||!T.ac)return;
+  try{var o=T.ac.createOscillator(),g=T.ac.createGain(),t=T.ac.currentTime;o.frequency.value=f;o.type="sine";g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.35,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+ms/1000);o.connect(g);g.connect(T.ac.destination);o.start(t);o.stop(t+ms/1000+.05)}catch(e){}
+}
+function buzz(p){try{if(navigator.vibrate)navigator.vibrate(p)}catch(e){}}
+function tStart(){
+  if(T.fin)return;
+  try{if(!T.ac)T.ac=new (window.AudioContext||window.webkitAudioContext)();else if(T.ac.state==="suspended")T.ac.resume()}catch(e){T.ac=null}
+  T.running=true;T.endAt=performance.now()+T.left;
+  try{if(navigator.wakeLock&&!T.lock)navigator.wakeLock.request("screen").then(function(l){T.lock=l}).catch(function(){})}catch(e){}
+  cancelAnimationFrame(T.raf);loop();
+}
+function tPause(){T.running=false;cancelAnimationFrame(T.raf);T.left=Math.max(0,T.endAt-performance.now());draw()}
+function tStop(){T.running=false;cancelAnimationFrame(T.raf);try{if(T.lock){T.lock.release();T.lock=null}}catch(e){}}
+function cue(){var k=T.segs[T.i].k;tone(k==="work"?880:520,k==="work"?420:300);buzz(k==="work"?[120,60,120]:200)}
+function next(manual){
+  if(T.fin)return;
+  if(T.i>=T.segs.length-1){finish();return}
+  T.i++;T.beep=-1;T.left=T.segs[T.i].d*1000;
+  if(T.running)T.endAt=performance.now()+T.left;
+  cue();if(manual)draw();
+}
+function finish(){tStop();T.fin=true;T.left=0;tone(988,250);setTimeout(function(){tone(1318,500)},260);buzz([200,100,200,100,300]);draw()}
+function loop(){
+  if(!T.running)return;
+  var now=performance.now();T.left=T.endAt-now;
+  while(T.running&&T.left<=0){
+    if(T.i>=T.segs.length-1){finish();return}
+    var over=-T.left;T.i++;T.beep=-1;T.left=T.segs[T.i].d*1000-over;T.endAt=now+T.left;cue();
+  }
+  var sec=Math.ceil(T.left/1000);
+  if(sec<=3&&sec>=1&&sec!==T.beep){T.beep=sec;tone(660,120)}
+  draw();T.raf=requestAnimationFrame(loop);
+}
+function draw(){
+  if(!T.view)return;
+  var el=function(id){return document.getElementById(id)};
+  if(!el("tNum"))return;
+  if(T.fin){
+    el("tPhase").textContent="Terminé";el("tPhase").style.setProperty("--tc","var(--ok)");
+    el("tNum").innerHTML='<span class="fin">Bravo</span>';el("tArc").style.strokeDashoffset="0";el("tArc").style.setProperty("--tc","var(--ok)");
+    el("tFig").innerHTML="";T.figI=-1;
+    el("tName").textContent="Séance terminée";el("tHint").textContent="Coche la séance pour gagner ton paquet.";el("tProg").textContent="";
+    var p=el("tPlay");p.textContent="Valider";p.onclick=function(){var c=openCtx,dk=dKey(c.mon,c.di,c.k);tStop();T.view=false;if(!store.done[dk])toggle(dk);if(openCtx)renderDetail()};
+    el("tSkip").disabled=true;el("tSnd").textContent="";return;
+  }
+  var s=T.segs[T.i],C=2*Math.PI*88,frac=Math.max(0,Math.min(1,T.left/(s.d*1000)));
+  var col=s.k==="work"?"var(--c)":(s.k==="rest"?"var(--rep)":"var(--pencil)");
+  el("tPhase").style.setProperty("--tc",col);el("tArc").style.setProperty("--tc",col);
+  el("tPhase").textContent=s.k==="work"?(s.tag||("Travail"+(s.tour?" · tour "+s.tour:""))):(s.k==="rest"?"Repos":"Préparation");
+  el("tNum").textContent=mmss(Math.ceil(T.left/1000));
+  el("tArc").style.strokeDasharray=C;el("tArc").style.strokeDashoffset=String(C*(1-frac));
+  el("tName").textContent=s.n;el("tHint").textContent=s.h||"";
+  if(T.figI!==T.i){
+    T.figI=T.i;
+    var fn=s.k==="work"?s.n:(T.segs[T.i+1]&&T.segs[T.i+1].k==="work"?T.segs[T.i+1].n:"");
+    var tf=el("tFig");tf.innerHTML=fn?fig(fn):"";tf.className="tfig"+(s.k==="work"?"":" next");
+  }
+  var rest=T.left/1000;for(var i=T.i+1;i<T.segs.length;i++)rest+=T.segs[i].d;
+  el("tProg").textContent="Étape "+(T.i+1)+" sur "+T.segs.length+" · reste "+mmss(rest);
+  el("tPlay").textContent=T.running?"Pause":(T.i===0&&T.left===T.segs[0].d*1000?"Démarrer":"Reprendre");
+  el("tSnd").textContent=T.sound?"Son activé (toucher pour couper)":"Son coupé (toucher pour activer)";
+}
+
+/* ---------- Fond topographique ---------- */
+(function(){
+  var R=rng(hash("fond")),s='<svg viewBox="0 0 400 900" preserveAspectRatio="xMidYMid slice">';
+  [[90,140,14],[330,420,12],[120,700,13]].forEach(function(p){
+    var q=[.08+R()*.08,R()*6,.04+R()*.05,R()*6];
+    for(var k=0;k<p[2];k++)s+='<path d="'+ring(p[0],p[1],8+k*13,q,1.3)+'"/>';
+  });
+  document.getElementById("bg").innerHTML=s+"</svg>";
+})();
+
+/* ---------- Évènements ---------- */
+document.getElementById("days").addEventListener("click",function(e){
+  var ck=e.target.closest(".check");if(ck){if(!ck.disabled)toggle(ck.getAttribute("data-dk"));return}
+  var op=e.target.closest(".open");if(op)openDetail(+op.getAttribute("data-di"),op.getAttribute("data-k"));
+});
+document.getElementById("viewA").addEventListener("click",function(e){var t=e.target.closest("[data-at]");if(t){atab=t.getAttribute("data-at");renderAlbum();return}var s=e.target.closest(".slot[data-id],.setc[data-id]");if(s)showCard(s.getAttribute("data-id"))});
+document.getElementById("prev").onclick=function(){viewMon=addDays(viewMon,-7);renderWeek()};
+document.getElementById("next").onclick=function(){viewMon=addDays(viewMon,7);renderWeek()};
+document.getElementById("backNow").onclick=function(){viewMon=curMon;renderWeek()};
+["A","B"].forEach(function(l){document.getElementById("seg"+l).onclick=function(){
+  var k=iso(viewMon);if(autoLetter(viewMon)===l)delete overrides[k];else overrides[k]=l;
+  lsSet("carnet-ov",JSON.stringify(overrides));renderWeek();
+}});
+function setTab(t){
+  tab=t;
+  document.getElementById("tabW").setAttribute("aria-selected",String(t==="W"));
+  document.getElementById("tabA").setAttribute("aria-selected",String(t==="A"));
+  document.getElementById("viewW").hidden=t!=="W";document.getElementById("viewA").hidden=t!=="A";
+  renderAll();
+}
+document.getElementById("tabW").onclick=function(){setTab("W")};
+document.getElementById("tabA").onclick=function(){setTab("A")};
+document.getElementById("packBtn").onclick=function(){if(store.packs.length)openPack();else setTab("A")};
+document.getElementById("sClose").onclick=closeDetail;
+backdrop.onclick=closeDetail;
+document.addEventListener("keydown",function(e){if(e.key!=="Escape")return;if(!ov.hidden&&!P)closePack();else if(!sheet.hidden)closeDetail()});
+document.addEventListener("visibilitychange",function(){if(!document.hidden&&T.running){cancelAnimationFrame(T.raf);loop()}});
+
+if(reconcile())lsSet("carnet-v2",JSON.stringify(store));
+setSync("appareil");
+renderAll();
+initDb();
+})();
+</script>
+<script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}</script>
+</body>
+</html>
