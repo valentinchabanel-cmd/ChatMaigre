@@ -461,13 +461,15 @@ svg .a{fill:none;stroke:var(--ink);stroke-width:2;stroke-linecap:round;stroke-li
     <section class="rules">
       <h2>Règles du topo</h2>
       <ul>
-        <li>Chaque séance cochée rapporte un paquet de 3 cartes : Montagnes pour l'escalade, Eaux pour la natation, Forêts pour la maison.</li>
+        <li>Chaque séance cochée rapporte un paquet de 3 cartes : Montagnes pour l'escalade, Eaux pour la natation, Forêts pour le sport à la maison.</li>
         <li>Semaine complète ou collection complète : un Paquet du Sommet, avec une carte épique ou mieux.</li>
         <li>159 lieux à découvrir, dont 9 cartes uniques qu'on ne peut obtenir qu'une seule fois.</li>
         <li>On coche le jour même ou après, pas à l'avance.</li>
         <li>La planche n'est jamais placée la veille d'une séance d'escalade, et jamais d'escalade deux jours de suite.</li>
         <li>En natation, tu dois pouvoir parler en nageant.</li>
-        <li>Jour de grosse fatigue : la séance maison devient la Maison 3 et la natation peut être raccourcie d'un tiers.</li>
+        <li>Reprise par paliers : escalade seule jusqu'au 8 novembre, natation à partir du 9 novembre, sport à la maison à partir du 7 décembre, programme complet le 4 janvier.</li>
+        <li>Règle du lendemain : si tu es encore très fatigué ou courbaturé, la séance suivante devient facile ou saute, sans culpabilité.</li>
+        <li>Jour de grosse fatigue : la séance de sport devient la Sport 3 et la natation peut être raccourcie d'un tiers.</li>
         <li>Planche : à la moindre gêne dans un doigt, on arrête et on passe à la mobilité.</li>
       </ul>
     </section>
@@ -535,6 +537,39 @@ var NOTE={
 };
 var PHASES={1:"Semaines 1 et 2 : base",2:"Semaines 3 et 4 : progression",3:"Semaine 5 : pic",4:"Semaine 6 : allégée"};
 function phaseOf(w){return w==null?1:(w<=2?1:(w<=4?2:(w===5?3:4)))}
+
+/* ---------- Reprise par paliers ---------- */
+var P2=new Date(2026,10,9),P3=new Date(2026,11,7),CREF=new Date(2027,0,4),CEND=new Date(2027,0,18);
+function stageOf(mon){return mon<P2?1:(mon<P3?2:(mon<CREF?3:0))}
+var STAGES={1:"Reprise, palier 1 sur 3 : escalade seule",2:"Reprise, palier 2 sur 3 : escalade et natation",3:"Reprise, palier 3 sur 3 : escalade, natation et sport"};
+var SNOTE={1:"Reprise en douceur : 2 escalades d'une heure, jamais deux jours de suite, et rien les jours de travail. La natation arrive le 9 novembre.",
+ 2:"La natation fait son entrée : 1 séance de 1000 m par semaine, puis 2 en semaine A à partir du 23 novembre. Toujours 2 escalades et au moins 3 jours sans séance. Le sport à la maison arrive le 7 décembre.",
+ 3:"Le sport à la maison fait son entrée : 1 séance de 15 min par semaine, puis 2 en semaine B à partir du 21 décembre, avec une première planche très douce. Au moins 2 jours de repos. Le programme complet démarre le 4 janvier."};
+function R0(){return [{k:"repos"}]}
+function stageTpl(st,letter,mon){
+  var A=letter==="A";
+  if(st===1)return A
+    ?{travail:[1,2,3],jours:[R0(),R0(),R0(),R0(),[{k:"esc-tech",q:"Le matin"}],R0(),[{k:"esc-facile"}]]}
+    :{travail:[0,1,3,4],jours:[R0(),R0(),[{k:"esc-tech",q:"Le matin"}],R0(),R0(),[{k:"esc-facile"}],R0()]};
+  if(st===2){
+    var l2=iso(mon)>="2026-11-23",e2=l2?"esc-vol":"esc-facile";
+    return A
+    ?{travail:[1,2,3],jours:[[{k:"nat-end",q:"Fin de matinée, à la piscine"}],R0(),R0(),R0(),[{k:"esc-tech",q:"Le matin"}],l2?[{k:"nat-end",q:"Le matin"}]:R0(),[{k:e2}]]}
+    :{travail:[0,1,3,4],jours:[R0(),R0(),[{k:"esc-tech",q:"Le matin"}],R0(),R0(),[{k:e2}],[{k:"nat-end"}]]};
+  }
+  var l3=iso(mon)>="2026-12-21",nc=l3?"nat-cont":"nat-end",nb=l3?"nat-blocs":"nat-end",e3=(weekIdx(mon)%2)?"esc-force":"esc-vol",mm=l3?"m1":"m3";
+  return A
+    ?{travail:[1,2,3],jours:[[{k:nc,q:"Fin de matinée, à la piscine"}],[{k:mm,q:SOIR}],R0(),R0(),[{k:"esc-tech",q:"Le matin"}],[{k:nb,q:"Le matin"}],[{k:e3}]]}
+    :{travail:[0,1,3,4],jours:[[{k:mm,q:SOIR}],R0(),[{k:"esc-tech",q:"Le matin"}],l3?[{k:"m2",q:SOIR}]:R0(),R0(),[{k:e3}],[{k:nb}]]};
+}
+function cycleWeek(mon){var i=Math.round((mon-CREF)/(7*DAY));return i<0?null:(i%6)+1}
+function planOf(mon){
+  var letter=letterOf(mon),st=stageOf(mon);
+  if(st)return {st:st,letter:letter,w:null,ph:1,tpl:stageTpl(st,letter,mon),label:STAGES[st],note:SNOTE[st]};
+  var w=cycleWeek(mon),ph=phaseOf(w);
+  if(mon<CEND)return {st:-1,letter:letter,w:w,ph:1,tpl:stageTpl(3,letter,mon),label:PHASES[1]+", transition douce",note:"Premières semaines du programme complet, encore allégées : 2 escalades, 1 à 2 natations et 1 à 2 séances de sport. Au moins 2 jours de repos."};
+  return {st:0,letter:letter,w:w,ph:ph,tpl:TPL[letter],label:PHASES[ph],note:NOTE[letter]};
+}
 
 /* ---------- Contenu des séances ---------- */
 function L(m){return m/25}
@@ -609,7 +644,8 @@ var M3E=["Gainage frontal","Dead bug","Crunch inversé","Chat vache","Ouverture 
 var PLANCHE={1:{n:6,c:"Grosse réglette, pieds posés sur le marchepied : les jambes portent une bonne partie du poids."},
              2:{n:7,c:"Grosse réglette, pieds toujours sur le marchepied mais appui plus léger."},
              3:{n:7,c:"Grosse réglette, poids du corps partiel : les pieds effleurent le marchepied."},
-             4:{n:5,c:"Retour aux réglages de la semaine 1 : pieds bien appuyés."}};
+             4:{n:5,c:"Retour aux réglages de la semaine 1 : pieds bien appuyés."},
+             5:{n:4,r:60,i:5,c:"Première planche de la reprise : grosse réglette, pieds bien appuyés sur le marchepied."}};
 var MOB=[["Passe bâton à l'élastique",60,"Élastique tendu bras écartés, passer devant puis derrière la tête."],["Ouverture thoracique au sol",60,EXO["Ouverture thoracique au sol"]],["Étirement avant bras",60,EXO["Étirement avant bras"]],["Chat vache",60,EXO["Chat vache"]],["Fente, hanche droite",45,"Genou gauche au sol, avancer le bassin."],["Fente, hanche gauche",45,"Genou droit au sol, avancer le bassin."]];
 
 function circuit(exos,tours,work,rest){
@@ -624,7 +660,7 @@ function circuit(exos,tours,work,rest){
 function sumSegs(s){var t=0;for(var i=0;i<s.length;i++)t+=s[i].d;return t}
 function mmss(sec){sec=Math.max(0,Math.round(sec));return Math.floor(sec/60)+":"+pad(sec%60)}
 
-function session(key,ph){
+function baseSession(key,ph){
   var o;
   if(key==="esc-tech"){
     var c={1:["4 exercices de 10 min sur des blocs bleus, un niveau sous ton max. Récupération libre entre les essais.","Pieds silencieux : poser chaque pied sans aucun bruit.","Pied précis : poser chaque pied du premier coup, sans le réajuster.","Bras tendus : rester bras tendus dès que possible, pousser avec les jambes.","Désescalade : redescendre chaque bloc par les prises."],
@@ -660,29 +696,58 @@ function session(key,ph){
        ret:["100 m dos souple ("+L(100)+" longueurs)"],total:tb};
   } else if(key==="m1"){
     var m=M1[ph], segs=circuit(m.e,m.t,40,20);
-    o={t:"mai",kind:"Maison",titre:"Maison 1 : gainage et antagonistes",duree:mmss(sumSegs(segs)).replace(":"," min ")+" s",obj:"Renforcer les muscles opposés à la grimpe (pousseurs, coiffe des rotateurs, extenseurs) et la sangle abdominale.",
+    o={t:"mai",kind:"Sport",titre:"Sport 1 : gainage et antagonistes",duree:mmss(sumSegs(segs)).replace(":"," min ")+" s",obj:"Renforcer les muscles opposés à la grimpe (pousseurs, coiffe des rotateurs, extenseurs) et la sangle abdominale.",
        ech:["Le premier tour sert d'échauffement : amplitude complète, rythme calme"],
        corps:[m.t+" tours de "+m.e.length+" exercices, 40 s de travail et 20 s de repos"],exos:m.e,
-       ret:["1 min de respiration lente au sol, puis étirement des pectoraux contre un mur"],segs:segs,mat:"Tapis, élastique"+(ph>=2?", poids de 3 kg":"")+(ph===3?", marchepied":"")};
+       ret:["1 min de respiration lente au sol, puis étirement des pectoraux contre un mur"],segs:segs,mat:"Tapis, élastique"+(m.e.join().indexOf("3 kg")>=0?", poids de 3 kg":"")+(ph===3?", marchepied":"")};
   } else if(key==="m2"){
     var pl=PLANCHE[ph], s2=[{k:"work",n:"Ouverture et fermeture des mains",d:60,h:"Contre l'élastique ou à vide, rapide.",tag:"Échauffement"}];
     for(var i=0;i<3;i++){s2.push({k:"work",n:"Suspension pieds au sol",d:15,h:"Sur les plus grosses prises, pieds au sol, bras tendus.",tag:"Échauffement"});s2.push({k:"rest",n:"Repos",d:15,h:i<2?"Ensuite : suspension pieds au sol":"Ensuite : planche"})}
-    for(var j=0;j<pl.n;j++){s2.push({k:"work",n:"Suspension sur la planche",d:10,h:pl.c+" Prise semi arquée ou main ouverte.",tag:"Planche "+(j+1)+" sur "+pl.n});if(j<pl.n-1)s2.push({k:"rest",n:"Repos",d:50,h:"Secoue les mains, respire."})}
+    for(var j=0;j<pl.n;j++){s2.push({k:"work",n:"Suspension sur la planche",d:10,h:pl.c+" Prise semi arquée ou main ouverte.",tag:"Planche "+(j+1)+" sur "+pl.n});if(j<pl.n-1)s2.push({k:"rest",n:"Repos",d:pl.r||50,h:"Secoue les mains, respire."})}
     s2.push({k:"rest",n:"Transition",d:15,h:"Installe le tapis pour la mobilité."});
     for(var k=0;k<MOB.length;k++)s2.push({k:"work",n:MOB[k][0],d:MOB[k][1],h:MOB[k][2],tag:"Mobilité"});
-    o={t:"mai",kind:"Maison",titre:"Maison 2 : planche et mobilité",duree:Math.round(sumSegs(s2)/60)+" min",obj:"Renforcer doigts et tendons très progressivement, puis entretenir la mobilité.",
+    o={t:"mai",kind:"Sport",titre:"Sport 2 : planche et mobilité",duree:Math.round(sumSegs(s2)/60)+" min",obj:"Renforcer doigts et tendons très progressivement, puis entretenir la mobilité.",
        ech:["1 min d'ouverture et fermeture des mains","3 suspensions de 15 s pieds au sol sur les plus grosses prises"],
-       corps:[pl.n+" suspensions de 10 s, 50 s de repos, sur la grosse réglette de la YY Vertical",pl.c,"Prise semi arquée ou main ouverte, jamais arquée. Intensité 6 sur 10.","Aucune douleur tolérée : à la moindre gêne dans un doigt, arrête la planche et passe à la mobilité."],
+       corps:[pl.n+" suspensions de 10 s, "+(pl.r||50)+" s de repos, sur la grosse réglette de la YY Vertical",pl.c,"Prise semi arquée ou main ouverte, jamais arquée. Intensité "+(pl.i||6)+" sur 10.","Aucune douleur tolérée : à la moindre gêne dans un doigt, arrête la planche et passe à la mobilité."],
        ret:MOB.map(function(x){return x[0]+" ("+x[1]+" s)"}),segs:s2,mat:"Planche YY Vertical, marchepied, élastique, tapis"};
   } else if(key==="m3"){
     var s3=circuit(M3E,2,45,15);
-    o={t:"mai",kind:"Maison",titre:"Maison 3 : mobilité et gainage doux",duree:Math.round(sumSegs(s3)/60)+" min",obj:"Récupérer en bougeant. C'est aussi la séance de remplacement les jours de grosse fatigue.",
+    o={t:"mai",kind:"Sport",titre:"Sport 3 : mobilité et gainage doux",duree:Math.round(sumSegs(s3)/60)+" min",obj:"Récupérer en bougeant. C'est aussi la séance de remplacement les jours de grosse fatigue.",
        ech:["Le premier exercice se fait à intensité modérée"],corps:["2 tours de 7 exercices, 45 s de travail et 15 s de repos"],exos:M3E,
        ret:["Quelques respirations lentes, allongé"],segs:s3,mat:"Tapis"};
   } else {
     o={t:"rep",kind:"Repos",titre:"Repos complet",duree:"Toute la journée",obj:"Laisser les tendons et les muscles se reconstruire. Le progrès se fait pendant le repos.",
        corps:["Pas de séance aujourd'hui","Une marche tranquille est bienvenue","Bien boire et soigner le sommeil"]};
   }
+  o.key=key;
+  return o;
+}
+
+function session(key,ph,st){
+  st=st||0;
+  var o=baseSession(key,ph);
+  var RET=["1 ou 2 blocs très faciles, très lentement","5 min d'étirements : avant bras (fléchisseurs et extenseurs), épaules, hanches"];
+  if(key==="esc-tech"&&(st===1||st===2)){
+    o.duree="1h";o.obj="Reprendre en grimpant mieux plutôt que plus dur. Pas de bloc projet, on reste sous son niveau max.";
+    o.corps=st===1?["3 exercices de 10 min sur des verts et des bleus faciles. Récupération libre entre les essais.","Pieds silencieux : poser chaque pied sans aucun bruit.","Pied précis : poser chaque pied du premier coup, sans le réajuster.","Désescalade : redescendre chaque bloc par les prises."]
+      :["3 exercices de 10 min sur des bleus, un thème différent d'une semaine à l'autre.","Lecture : observer le bloc 1 min et mimer la séquence avant de grimper.","Hanche contre le mur : grimper de profil sur les mouvements longs.","Drapeau : une jambe en contrepoids au lieu de poser les deux pieds.","Ou bras tendus : rester bras tendus dès que possible, pousser avec les jambes."];
+    o.ret=RET;
+  }
+  if(key==="esc-facile"){
+    o={t:"esc",kind:"Escalade",titre:"Escalade facile",duree:"1h",obj:"Le plaisir de grimper, sans forcer. C'est la séance qui installe l'habitude.",ech:ECH_ESC,
+       corps:["30 min de grimpe libre sur des blocs verts et bleus faciles.","2 à 3 min de repos entre chaque bloc.","Quelques bleus plus durs si tout va bien, sans insister.","Tu t'arrêtes avant que les avant bras ne brûlent."],ret:RET};
+  }
+  if(key==="esc-vol"&&st===2){o.duree="1h";o.corps=["3 tours de 4x4 : 4 blocs faciles (vert, bleu facile) enchaînés sans pause.","4 min de repos entre les tours.","Pas de bloc projet."]}
+  if(key==="esc-force"&&(st===3||st===-1)){o.duree="1h15";o.obj="Retrouver la force en douceur : peu de projets, beaucoup de repos.";o.corps=["2 blocs projet seulement, bleus difficiles ou rouges.","4 essais maximum par bloc.","3 min de repos entre deux essais, montre en main.","Arrêt dès que la qualité baisse ou qu'un doigt tire."]}
+  if(key==="nat-end"){
+    o={t:"nat",kind:"Natation",titre:"Natation endurance",duree:"40 min",obj:"Retrouver l'eau et le souffle, sans se fatiguer.",
+       allure:"Allure confortable : tu dois pouvoir parler, effort ressenti 4 sur 10.",
+       ech:["200 m brasse souple ("+L(200)+" longueurs)"],
+       corps:["4 x 150 m brasse, allure confortable, 30 s de repos ("+L(600)+" longueurs)","100 m dos ou battements avec planche ("+L(100)+" longueurs)"],
+       ret:["100 m très lent, nage au choix ("+L(100)+" longueurs)"],total:1000};
+  }
+  if(key==="m1"&&(st===3||st===-1))o=baseSession("m1",4);
+  if(key==="m2"&&st===3)o=baseSession("m2",5);
   o.key=key;
   return o;
 }
@@ -2679,7 +2744,6 @@ try{overrides=obj(JSON.parse(lsGet("carnet-ov")||"{}"))}catch(e){}
 
 function autoLetter(mon){var i=weekIdx(mon);return (((i%2)+2)%2)===0?"A":"B"}
 function letterOf(mon){return overrides[iso(mon)]||autoLetter(mon)}
-function cycleWeek(mon){var i=weekIdx(mon);return i<0?null:(i%6)+1}
 function dKey(mon,di,k){return iso(mon)+"|"+di+"|"+k}
 function parseIso(s){var p=s.split("-");return new Date(+p[0],+p[1]-1,+p[2])}
 function dateOfKey(dk){var p=dk.split("|");return addDays(parseIso(p[0]),+p[1])}
@@ -2725,7 +2789,7 @@ function initDb(){
 
 /* ---------- Récompenses ---------- */
 function weekSessions(mon){
-  var tpl=TPL[letterOf(mon)],out=[];
+  var tpl=planOf(mon).tpl,out=[];
   for(var di=0;di<7;di++)tpl.jours[di].forEach(function(it){if(it.k!=="repos")out.push(dKey(mon,di,it.k))});
   return out;
 }
@@ -2935,21 +2999,21 @@ function renderHead(){
   b.setAttribute("aria-label",n?"Ouvrir un paquet ("+n+" en attente)":"Aucun paquet à ouvrir");
 }
 function renderWeek(){
-  var mon=viewMon,letter=letterOf(mon),auto=autoLetter(mon),w=cycleWeek(mon),ph=phaseOf(w),tpl=TPL[letter];
+  var mon=viewMon,pl=planOf(mon),letter=pl.letter,auto=autoLetter(mon),w=pl.w,ph=pl.ph,tpl=pl.tpl;
   var sun=addDays(mon,6);
-  document.getElementById("wkBig").innerHTML="Semaine "+letter+(w?"<span>S"+w+" du cycle</span>":"<span>avant le cycle</span>");
+  document.getElementById("wkBig").innerHTML="Semaine "+letter+(pl.st>0?"<span>Reprise, palier "+pl.st+" sur 3</span>":(w?"<span>S"+w+" du cycle</span>":"<span>avant le cycle</span>"));
   document.getElementById("wkSub").textContent="Du "+fmt(mon)+" au "+fmt(sun)+" "+sun.getFullYear();
   ["A","B"].forEach(function(l){var b=document.getElementById("seg"+l);b.setAttribute("aria-pressed",String(letter===l));b.innerHTML=l+(auto===l?" <small>auto</small>":"")});
   document.getElementById("backNow").hidden=(iso(mon)===iso(curMon));
-  document.getElementById("phaseTxt").textContent=w?PHASES[ph]:"Contenu de base";
-  document.getElementById("noteWeek").textContent=NOTE[letter]+(overrides[iso(mon)]?" Type de semaine choisi à la main.":"");
+  document.getElementById("phaseTxt").textContent=pl.label;
+  document.getElementById("noteWeek").textContent=pl.note+(overrides[iso(mon)]?" Type de semaine choisi à la main.":"");
   var html="",bars="",nTot=0,nDone=0,todayIso=iso(today);
   for(var di=0;di<7;di++){
     var date=addDays(mon,di),isToday=iso(date)===todayIso,work=tpl.travail.indexOf(di)>=0,future=iso(date)>todayIso;
     html+='<article class="pitch'+(isToday?" today":"")+'"><div class="relay"><b>'+JABR[di]+'</b><span>'+date.getDate()+'/'+pad(date.getMonth()+1)+'</span></div>'
       +'<div class="phead"><span class="pname">'+JOURS[di]+'</span><span class="pnote">'+(isToday?"aujourd’hui":(work?"journée de travail":"jour libre"))+'</span></div>';
     tpl.jours[di].forEach(function(it){
-      var s=session(it.k,ph),dk=dKey(mon,di,it.k),done=!!store.done[dk];
+      var s=session(it.k,ph,pl.st),dk=dKey(mon,di,it.k),done=!!store.done[dk];
       var meta=s.t==="nat"?s.duree+" · "+s.total+" m":s.duree;if(it.q)meta+=" · "+it.q;
       html+='<div class="row t-'+s.t+(done?" done":"")+'"><button class="open" data-di="'+di+'" data-k="'+it.k+'"><span class="rtitle">'+esc(s.titre)+'</span><span class="rmeta">'+esc(meta)+'</span></button>';
       if(s.t!=="rep"){
@@ -3013,14 +3077,14 @@ function closeDetail(){
 }
 function list(arr){return "<ul>"+arr.map(function(x){return "<li>"+esc(x)+"</li>"}).join("")+"</ul>"}
 function renderDetail(){
-  var c=openCtx,w=cycleWeek(c.mon),ph=phaseOf(w),letter=letterOf(c.mon);
-  var it=TPL[letter].jours[c.di].filter(function(x){return x.k===c.k})[0]||{k:c.k};
-  var s=session(c.k,ph),date=addDays(c.mon,c.di),dk=dKey(c.mon,c.di,c.k),done=!!store.done[dk];
+  var c=openCtx,pl=planOf(c.mon),w=pl.w,ph=pl.ph,letter=pl.letter;
+  var it=pl.tpl.jours[c.di].filter(function(x){return x.k===c.k})[0]||{k:c.k};
+  var s=session(c.k,ph,pl.st),date=addDays(c.mon,c.di),dk=dKey(c.mon,c.di,c.k),done=!!store.done[dk];
   sheet.className="sheet t-"+s.t;
   document.getElementById("sKind").textContent=s.kind+" · "+JOURS[c.di]+" "+fmt(date);
   document.getElementById("sTitle").textContent=s.titre;
   document.getElementById("sWhen").textContent=it.q||"";
-  var h='<div class="chips"><span class="chip">Durée totale : '+esc(s.duree)+'</span>'+(s.total?'<span class="chip">'+s.total+' m · '+L(s.total)+' longueurs</span>':"")+'<span class="chip">'+(w?esc(PHASES[ph]):"Avant le cycle")+'</span>'+(s.mat?'<span class="chip">'+esc(s.mat)+'</span>':"")+'</div>';
+  var h='<div class="chips"><span class="chip">Durée totale : '+esc(s.duree)+'</span>'+(s.total?'<span class="chip">'+s.total+' m · '+L(s.total)+' longueurs</span>':"")+'<span class="chip">'+esc(pl.label)+'</span>'+(s.mat?'<span class="chip">'+esc(s.mat)+'</span>':"")+'</div>';
   h+='<div class="blk"><h3>Objectif</h3><p>'+esc(s.obj)+'</p></div>';
   if(s.allure)h+='<div class="blk"><h3>Allure</h3><p>'+esc(s.allure)+'</p></div>';
   if(s.ech)h+='<div class="blk"><h3>Échauffement</h3>'+list(s.ech)+'</div>';
