@@ -574,7 +574,7 @@ function planOf(mon){
 
 /* ---------- Contenu des séances ---------- */
 function L(m){return m/25}
-var ECH_ESC=["5 min de mobilité : poignets, cercles de bras, hanches, colonne","Ouverture et fermeture des mains, 30 fois","6 à 8 blocs très faciles (jaune, vert), en montant progressivement vers le bleu","Grimper lentement, sans tirer fort sur les doigts"];
+var ECH_ESC=["5 min de mobilité : poignets, cercles de bras, hanches, colonne","Ouverture et fermeture des mains, 30 fois","6 à 8 blocs très faciles de niveau 1 et 2, en montant progressivement vers le niveau 3","Grimper lentement, sans tirer fort sur les doigts"];
 var EXO={
   "Pompes":"Mains largeur d'épaules, corps gainé. Sur les genoux si la forme se dégrade.",
   "Pompes pieds sur le marchepied":"Pieds surélevés, corps gainé. Repasse au sol si le dos se creuse.",
@@ -664,20 +664,20 @@ function mmss(sec){sec=Math.max(0,Math.round(sec));return Math.floor(sec/60)+":"
 function baseSession(key,ph){
   var o;
   if(key==="esc-tech"){
-    var c={1:["4 exercices de 10 min sur des blocs bleus, un niveau sous ton max. Récupération libre entre les essais.","Pieds silencieux : poser chaque pied sans aucun bruit.","Pied précis : poser chaque pied du premier coup, sans le réajuster.","Bras tendus : rester bras tendus dès que possible, pousser avec les jambes.","Désescalade : redescendre chaque bloc par les prises."],
-           2:["4 exercices de 10 min sur des bleus et des rouges faciles.","Lecture : observer le bloc 1 min et mimer la séquence avant de grimper.","Hanche contre le mur : grimper de profil sur les mouvements longs.","Drapeau : une jambe en contrepoids au lieu de poser les deux pieds.","Crochets : chercher un crochet de talon ou de pointe sur 3 blocs."],
-           3:["Les thèmes des semaines 3 et 4, appliqués sur des rouges.","4 rouges déjà réussis, refaits en visant zéro bruit de pied.","Puis 2 rouges nouveaux : 1 min de lecture, puis essai à vue.","2 à 3 min de récupération entre les rouges."],
-           4:["Semaine allégée : 30 min seulement.","Blocs verts et bleus, en cherchant la fluidité.","Un seul thème au choix : pieds silencieux, bras tendus ou désescalade."]};
+    var c={1:["4 exercices de 10 min sur des blocs de niveau 3, sous ton max. Récupération libre entre les essais.","Pieds silencieux : poser chaque pied sans aucun bruit.","Pied précis : poser chaque pied du premier coup, sans le réajuster.","Bras tendus : rester bras tendus dès que possible, pousser avec les jambes.","Désescalade : redescendre chaque bloc par les prises."],
+           2:["4 exercices de 10 min sur des niveaux 3 et des 4 faciles.","Lecture : observer le bloc 1 min et mimer la séquence avant de grimper.","Hanche contre le mur : grimper de profil sur les mouvements longs.","Drapeau : une jambe en contrepoids au lieu de poser les deux pieds.","Crochets : chercher un crochet de talon ou de pointe sur 3 blocs."],
+           3:["Les thèmes des semaines 3 et 4, appliqués sur des niveaux 4.","4 blocs de niveau 4 déjà réussis, refaits en visant zéro bruit de pied.","Puis 2 niveaux 4 nouveaux : 1 min de lecture, puis essai à vue.","2 à 3 min de récupération entre les blocs."],
+           4:["Semaine allégée : 30 min seulement.","Blocs de niveau 1 à 3, en cherchant la fluidité.","Un seul thème au choix : pieds silencieux, bras tendus ou désescalade."]};
     o={t:"esc",kind:"Escalade",titre:"Escalade technique",duree:ph===4?"1h":"1h15",obj:"Grimper mieux plutôt que plus dur : placement des pieds, économie, lecture des blocs.",ech:ECH_ESC,corps:c[ph],ret:["2 blocs très faciles, très lentement","5 min d'étirements : avant bras (fléchisseurs et extenseurs), épaules"]};
   } else if(key==="esc-force"){
-    var f={1:["3 blocs projet, rouges ou au dessus.","4 essais maximum par bloc.","3 min de repos entre deux essais, montre en main.","Arrêt dès que la qualité baisse ou qu'un doigt tire."],
+    var f={1:["3 blocs projet de niveau 4.","4 essais maximum par bloc.","3 min de repos entre deux essais, montre en main.","Arrêt dès que la qualité baisse ou qu'un doigt tire."],
            2:["4 blocs projet.","4 essais maximum par bloc, 3 min de repos.","Travailler les mouvements durs isolément, puis relier."],
-           3:["4 blocs projet rouges.","Plus 1 bloc au dessus de ton niveau, travaillé par morceaux, 3 essais maximum.","3 à 4 min de repos entre les essais."],
-           4:["Pas de projet cette semaine.","6 rouges déjà réussis, 1 à 2 fois chacun, en visant la propreté.","2 min de repos entre les blocs."]};
-    o={t:"esc",kind:"Escalade",titre:"Escalade bloc force",duree:ph===4?"1h":"1h20",obj:"Gagner en force sur tes blocs rouges et sur le niveau au dessus.",ech:ECH_ESC.concat(["2 blocs rouges déjà réussis pour finir"]),corps:f[ph],ret:["3 séries de 10 pompes","3 séries de 15 rotations externes à l'élastique si tu l'as dans ton sac","Étirements avant bras et épaules"]};
+           3:["4 blocs projet de niveau 4.","Plus 1 niveau 4 qui te résiste depuis longtemps, travaillé par morceaux, 3 essais maximum.","3 à 4 min de repos entre les essais."],
+           4:["Pas de projet cette semaine.","6 blocs de niveau 4 déjà réussis, 1 à 2 fois chacun, en visant la propreté.","2 min de repos entre les blocs."]};
+    o={t:"esc",kind:"Escalade",titre:"Escalade bloc force",duree:ph===4?"1h":"1h20",obj:"Gagner en force pour devenir solide sur les niveaux 4.",ech:ECH_ESC.concat(["2 blocs de niveau 4 déjà réussis pour finir"]),corps:f[ph],ret:["3 séries de 10 pompes","3 séries de 15 rotations externes à l'élastique si tu l'as dans ton sac","Étirements avant bras et épaules"]};
   } else if(key==="esc-vol"){
-    var v={1:["Circuits 4x4 : 4 blocs faciles (vert, bleu facile) enchaînés sans pause, 4 fois.","4 min de repos entre les tours.","Variante en voie : 4 voies faciles avec 3 min de repos."],
-           2:["Circuits 4x4 avec 1 bleu difficile dans chaque série de 4.","4 min de repos entre les tours."],
+    var v={1:["Circuits 4x4 : 4 blocs faciles (niveau 1 à 2) enchaînés sans pause, 4 fois.","4 min de repos entre les tours.","Choisis 4 blocs proches les uns des autres pour enchaîner sans attendre."],
+           2:["Circuits 4x4 avec 1 niveau 3 difficile dans chaque série de 4.","4 min de repos entre les tours."],
            3:["5 tours de 4x4.","4 min de repos entre les tours.","Si les avant bras brûlent trop au 4e tour, arrête toi à 4."],
            4:["3 tours de 4x4 très faciles.","Ou 30 min de grimpe libre, juste pour le plaisir."]};
     o={t:"esc",kind:"Escalade",titre:"Escalade volume",duree:ph===4?"1h":"1h15",obj:"Endurance de grimpe et plaisir : du volume sans abîmer les doigts.",ech:ECH_ESC,corps:v[ph],ret:["5 min de grimpe très facile","5 min d'étirements"]};
@@ -730,16 +730,16 @@ function session(key,ph,st){
   var RET=["1 ou 2 blocs très faciles, très lentement","5 min d'étirements : avant bras (fléchisseurs et extenseurs), épaules, hanches"];
   if(key==="esc-tech"&&(st===1||st===2)){
     o.duree="1h";o.obj="Reprendre en grimpant mieux plutôt que plus dur. Pas de bloc projet, on reste sous son niveau max.";
-    o.corps=st===1?["3 exercices de 10 min sur des verts et des bleus faciles. Récupération libre entre les essais.","Pieds silencieux : poser chaque pied sans aucun bruit.","Pied précis : poser chaque pied du premier coup, sans le réajuster.","Désescalade : redescendre chaque bloc par les prises."]
-      :["3 exercices de 10 min sur des bleus, un thème différent d'une semaine à l'autre.","Lecture : observer le bloc 1 min et mimer la séquence avant de grimper.","Hanche contre le mur : grimper de profil sur les mouvements longs.","Drapeau : une jambe en contrepoids au lieu de poser les deux pieds.","Ou bras tendus : rester bras tendus dès que possible, pousser avec les jambes."];
+    o.corps=st===1?["3 exercices de 10 min sur des blocs de niveau 1 et 2. Récupération libre entre les essais.","Pieds silencieux : poser chaque pied sans aucun bruit.","Pied précis : poser chaque pied du premier coup, sans le réajuster.","Désescalade : redescendre chaque bloc par les prises."]
+      :["3 exercices de 10 min sur des blocs de niveau 2 et 3, un thème différent d'une semaine à l'autre.","Lecture : observer le bloc 1 min et mimer la séquence avant de grimper.","Hanche contre le mur : grimper de profil sur les mouvements longs.","Drapeau : une jambe en contrepoids au lieu de poser les deux pieds.","Ou bras tendus : rester bras tendus dès que possible, pousser avec les jambes."];
     o.ret=RET;
   }
   if(key==="esc-facile"){
     o={t:"esc",kind:"Escalade",titre:"Escalade facile",duree:"1h",obj:"Le plaisir de grimper, sans forcer. C'est la séance qui installe l'habitude.",ech:ECH_ESC,
-       corps:["30 min de grimpe libre sur des blocs verts et bleus faciles.","2 à 3 min de repos entre chaque bloc.","Quelques bleus plus durs si tout va bien, sans insister.","Tu t'arrêtes avant que les avant bras ne brûlent."],ret:RET};
+       corps:["30 min de grimpe libre sur des blocs de niveau 1 à 3.","2 à 3 min de repos entre chaque bloc.","Un ou deux niveaux 4 si tout va bien, sans insister.","Tu t'arrêtes avant que les avant bras ne brûlent."],ret:RET};
   }
-  if(key==="esc-vol"&&st===2){o.duree="1h";o.corps=["3 tours de 4x4 : 4 blocs faciles (vert, bleu facile) enchaînés sans pause.","4 min de repos entre les tours.","Pas de bloc projet."]}
-  if(key==="esc-force"&&(st===3||st===-1)){o.duree="1h15";o.obj="Retrouver la force en douceur : peu de projets, beaucoup de repos.";o.corps=["2 blocs projet seulement, bleus difficiles ou rouges.","4 essais maximum par bloc.","3 min de repos entre deux essais, montre en main.","Arrêt dès que la qualité baisse ou qu'un doigt tire."]}
+  if(key==="esc-vol"&&st===2){o.duree="1h";o.corps=["3 tours de 4x4 : 4 blocs faciles (niveau 1 à 2) enchaînés sans pause.","4 min de repos entre les tours.","Pas de bloc projet."]}
+  if(key==="esc-force"&&(st===3||st===-1)){o.duree="1h15";o.obj="Retrouver la force en douceur : peu de projets, beaucoup de repos.";o.corps=["2 blocs projet seulement, de niveau 4.","4 essais maximum par bloc.","3 min de repos entre deux essais, montre en main.","Arrêt dès que la qualité baisse ou qu'un doigt tire."]}
   if(key==="nat-end"){
     o={t:"nat",kind:"Natation",titre:"Natation endurance",duree:"40 min",obj:"Retrouver l'eau et le souffle, sans se fatiguer.",
        allure:"Allure confortable : tu dois pouvoir parler, effort ressenti 4 sur 10.",
@@ -3098,6 +3098,7 @@ function renderDetail(){
     }).join("")+'</div></div>';
   }
   if(s.ret)h+='<div class="blk"><h3>Retour au calme</h3>'+list(s.ret)+'</div>';
+  if(s.t==="esc")h+='<div class="pool"><b>Climb World, Les Ateliers Gaîté</b>80 avenue du Maine, 75014 Paris (métro Montparnasse Bienvenüe). Bloc uniquement, niveaux 1 à 7. Ouvert de 7h à 23h en semaine, de 9h à 23h le week end.</div>';
   if(s.t==="nat"){
     var p=pool(date,c.di);
     h+='<div class="pool"><b>Piscine Aspirant Dunand, bassin de 25 m</b>'+esc(p.p)+(p.h?" : "+esc(JOURS[c.di].toLowerCase())+" "+esc(p.h)+".":".")+' Dernières entrées 45 min avant la fermeture, évacuation du bassin 30 min avant.</div>';
