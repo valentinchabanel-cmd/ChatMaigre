@@ -415,54 +415,6 @@ svg .a{fill:none;stroke:var(--ink);stroke-width:2;stroke-linecap:round;stroke-li
 .tctl .btn{padding:12px 6px}
 .fin{font-family:var(--display);font-size:2rem;font-weight:700}
 @media (prefers-reduced-motion: no-preference){.sheet{animation:up .22s ease-out}@keyframes up{from{transform:translateY(24px);opacity:.4}}@media (min-width:720px){.sheet{animation:none}}}
-
-/* Carnet de séance et coach */
-.carnet{display:flex;flex-direction:column;gap:10px;background:var(--sheet);border:1.5px solid var(--ink);padding:12px}
-.carnet h3{font-family:var(--display);font-weight:700;font-size:1.1rem;text-transform:uppercase;letter-spacing:.06em;color:var(--c);margin:0}
-.lab{font-size:.75rem;text-transform:uppercase;letter-spacing:.07em;color:var(--pencil);font-weight:700;margin:0}
-.rate{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
-.rate button{border:1.5px solid var(--ink);background:var(--paper);padding:8px 0 6px;display:flex;flex-direction:column;align-items:center;gap:3px;font-family:var(--display);font-weight:700;font-size:1.25rem;line-height:1}
-.rate button small{font-family:var(--body);font-weight:600;font-size:.66rem;color:var(--pencil)}
-.rate button[aria-pressed="true"]{background:var(--c);border-color:var(--c);color:#fff}
-.rate button[aria-pressed="true"] small{color:#fff}
-.lvs{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:6px}
-.lv{display:flex;align-items:center;justify-content:space-between;border:1.5px solid var(--line);background:var(--paper);padding:2px}
-.lv.on{border-color:var(--c);background:color-mix(in srgb,var(--c) 8%,var(--paper))}
-.lv span{display:flex;flex-direction:column;align-items:center;line-height:1.05}
-.lv span small{font-size:.64rem;color:var(--pencil);text-transform:uppercase;letter-spacing:.05em;font-weight:700}
-.lv span b{font-family:var(--display);font-size:1.4rem;font-variant-numeric:tabular-nums}
-.lv button{width:32px;height:40px;border:0;background:none;font-size:1.3rem;font-weight:700;color:var(--c);display:grid;place-items:center}
-.lv button:disabled{opacity:.2}
-.carnet textarea,.ccard textarea,.ccard input{width:100%;font:inherit;font-size:16px;color:var(--ink);background:var(--paper);border:1.5px solid var(--ink);border-radius:0;padding:8px 10px;resize:vertical}
-.saved{font-family:var(--hand);color:var(--ok);font-size:.95rem;margin:0;text-align:center}
-.coachbox{border-left:4px solid var(--c,var(--esc));background:color-mix(in srgb,var(--c,var(--esc)) 7%,var(--sheet));padding:8px 12px;font-size:.95rem;line-height:1.45;overflow-wrap:anywhere}
-.coachbox p{margin:0 0 6px}
-.coachbox p:last-child,.coachbox ul:last-child{margin-bottom:0}
-.coachbox ul{margin:0 0 6px;padding-left:18px;display:flex;flex-direction:column;gap:3px}
-.coachbox .who{font-family:var(--hand);color:var(--pencil);font-size:.92rem;margin:0 0 2px}
-.coachbox.err{border-color:var(--esc);color:var(--esc)}
-.wait{font-family:var(--hand);color:var(--pencil);margin:0}
-@media (prefers-reduced-motion: no-preference){.wait{animation:blink 1.4s ease-in-out infinite}@keyframes blink{50%{opacity:.35}}}
-.ccard{background:var(--sheet);border:1.5px solid var(--ink);padding:12px 14px;display:flex;flex-direction:column;gap:10px;--c:var(--esc)}
-.ccard.nat{--c:var(--nat)} .ccard.mai{--c:var(--mai)} .ccard.gold{--c:var(--gold)}
-.ccard h2{font-family:var(--display);font-size:1.3rem;text-transform:uppercase;letter-spacing:.05em;margin:0;line-height:1.05}
-.ccard>p{margin:0;font-size:.93rem;color:var(--pencil)}
-.cday{display:flex;flex-direction:column;gap:4px}
-.cday div{border-left:5px solid var(--c);background:color-mix(in srgb,var(--c) 9%,var(--sheet));padding:6px 10px;font-weight:700}
-.cday div small{display:block;font-weight:400;font-size:.84rem;color:var(--pencil)}
-.opts{display:flex;flex-wrap:wrap;gap:6px}
-.opts button{border:1.5px solid var(--ink);background:var(--paper);padding:7px 12px;font-weight:600;font-size:.92rem}
-.opts button[aria-pressed="true"]{background:var(--ink);color:var(--sheet)}
-.chat{display:flex;flex-direction:column;gap:8px}
-.bub{max-width:90%}
-.bub.me{align-self:flex-end;background:var(--ink);color:var(--sheet);padding:8px 12px;font-size:.95rem;white-space:pre-wrap;overflow-wrap:anywhere}
-.bub.co{align-self:flex-start}
-.crow{display:flex;gap:8px;align-items:flex-end}
-.crow textarea{flex:1}
-.crow .btn{width:auto;flex:none}
-.cfoot2{font-size:.85rem;color:var(--pencil);display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center;margin:0}
-.steps{margin:0;padding-left:20px;font-size:.93rem;display:flex;flex-direction:column;gap:4px}
-.steps a{color:var(--esc)}
 </style>
 
 </head>
@@ -484,7 +436,6 @@ svg .a{fill:none;stroke:var(--ink);stroke-width:2;stroke-linecap:round;stroke-li
   <nav class="tabs" role="tablist">
     <button role="tab" id="tabW" aria-selected="true">Semaine</button>
     <button role="tab" id="tabA" aria-selected="false">Album</button>
-    <button role="tab" id="tabC" aria-selected="false">Coach</button>
   </nav>
 
   <section id="viewW" class="wrap" style="max-width:none">
@@ -517,7 +468,7 @@ svg .a{fill:none;stroke:var(--ink);stroke-width:2;stroke-linecap:round;stroke-li
         <li>La planche n'est jamais placée la veille d'une séance d'escalade, et jamais d'escalade deux jours de suite.</li>
         <li>En natation, tu dois pouvoir parler en nageant.</li>
         <li>Escalade : 3 séances les semaines à 3 jours de travail, 2 les autres semaines.</li>
-        <li>Reprise par paliers : escalade seule jusqu'au 8 novembre, natation à partir du 9 novembre, sport à la maison à partir du 7 décembre, programme complet le 4 janvier.</li>
+        <li>Reprise par paliers : escalade seule à partir du 1er novembre, natation à partir du 30 novembre, sport à la maison à partir du 4 janvier, programme complet le 1er février.</li>
         <li>Règle du lendemain : si tu es encore très fatigué ou courbaturé, la séance suivante devient facile ou saute, sans culpabilité.</li>
         <li>Jour de grosse fatigue : la séance de sport devient la Sport 3 et la natation peut être raccourcie d'un tiers.</li>
         <li>Planche : à la moindre gêne dans un doigt, on arrête et on passe à la mobilité.</li>
@@ -526,7 +477,6 @@ svg .a{fill:none;stroke:var(--ink);stroke-width:2;stroke-linecap:round;stroke-li
   </section>
 
   <section id="viewA" class="wrap" style="max-width:none" hidden></section>
-  <section id="viewC" class="wrap" style="max-width:none" hidden></section>
 </div>
 
 <div class="ov" id="ov" hidden><div class="stage" id="stage"></div></div>
@@ -561,7 +511,7 @@ function weekIdx(mon){return Math.round((mon-REF)/(7*DAY))}
 function fmt(d){return d.getDate()+" "+MOIS[d.getMonth()]}
 
 /* ---------- Piscine Aspirant Dunand ---------- */
-var VACANCES=[["2026-10-19","2026-11-01"],["2026-12-21","2027-01-03"],["2027-02-08","2027-02-21"],["2027-04-05","2027-04-18"]];
+var VACANCES=[["2026-10-17","2026-11-02"],["2026-12-19","2027-01-03"],["2027-02-08","2027-02-21"],["2027-04-05","2027-04-18"]];
 var H_SCOL=["11h30 à 13h45","7h00 à 8h45 et 11h30 à 13h45","7h00 à 8h45 et 11h30 à 18h00","7h00 à 8h45 et 11h30 à 13h45","7h00 à 8h45, 11h30 à 13h45 et 17h00 à 22h00","7h00 à 18h00 (15h à 18h réservé aux familles)","8h00 à 18h00"];
 var H_VAC=["10h00 à 18h00","7h00 à 18h00","7h00 à 18h00","7h00 à 18h00","7h00 à 22h00","7h00 à 18h00","8h00 à 18h00"];
 function pool(date,di){
@@ -590,12 +540,12 @@ var PHASES={1:"Semaines 1 et 2 : base",2:"Semaines 3 et 4 : progression",3:"Sema
 function phaseOf(w){return w==null?1:(w<=2?1:(w<=4?2:(w===5?3:4)))}
 
 /* ---------- Reprise par paliers ---------- */
-var P2=new Date(2026,10,9),P3=new Date(2026,11,7),CREF=new Date(2027,0,4),CEND=new Date(2027,0,18);
+var P1=new Date(2026,10,2),P2=new Date(2026,10,30),P3=new Date(2027,0,4),CREF=new Date(2027,1,1),CEND=new Date(2027,1,15);
 function stageOf(mon){return mon<P2?1:(mon<P3?2:(mon<CREF?3:0))}
 var STAGES={1:"Reprise, palier 1 sur 3 : escalade seule",2:"Reprise, palier 2 sur 3 : escalade et natation",3:"Reprise, palier 3 sur 3 : escalade, natation et sport"};
-var SNOTE={1:"Reprise en douceur : des escalades d'une heure (3 les semaines à 3 jours de travail, 2 les autres), jamais deux jours de suite, et rien les jours de travail. La natation arrive le 9 novembre.",
- 2:"La natation fait son entrée : 1 séance de 1000 m par semaine, jamais le même jour qu'une escalade. Toujours 3 escalades en semaine A et 2 en semaine B. Le sport à la maison arrive le 7 décembre.",
- 3:"Le sport à la maison fait son entrée : 1 séance de 15 min par semaine, puis 2 en semaine B à partir du 21 décembre, avec une première planche très douce. Au moins 2 jours de repos. Le programme complet démarre le 4 janvier."};
+var SNOTE={1:"Reprise en douceur : des escalades d'une heure (3 les semaines à 3 jours de travail, 2 les autres), jamais deux jours de suite, et rien les jours de travail. La natation arrive le 30 novembre.",
+ 2:"La natation fait son entrée : 1 séance de 1000 m par semaine, jamais le même jour qu'une escalade. Toujours 3 escalades en semaine A et 2 en semaine B. Le sport à la maison arrive le 4 janvier.",
+ 3:"Le sport à la maison fait son entrée : 1 séance de 15 min par semaine, puis 2 en semaine B à partir du 18 janvier, avec une première planche très douce. Au moins 2 jours de repos. Le programme complet démarre le 1er février."};
 function R0(){return [{k:"repos"}]}
 function stageTpl(st,letter,mon){
   var A=letter==="A";
@@ -603,12 +553,12 @@ function stageTpl(st,letter,mon){
     ?{travail:[1,2,3],jours:[[{k:"esc-facile",q:"Le matin"}],R0(),R0(),R0(),[{k:"esc-tech",q:"Le matin"}],R0(),[{k:"esc-facile"}]]}
     :{travail:[0,1,3,4],jours:[R0(),R0(),[{k:"esc-tech",q:"Le matin"}],R0(),R0(),[{k:"esc-facile"}],R0()]};
   if(st===2){
-    var l2=iso(mon)>="2026-11-23",e2=l2?"esc-vol":"esc-facile";
+    var l2=iso(mon)>="2026-12-14",e2=l2?"esc-vol":"esc-facile";
     return A
     ?{travail:[1,2,3],jours:[[{k:"esc-facile",q:"Le matin"}],R0(),R0(),R0(),[{k:"esc-tech",q:"Le matin"}],[{k:"nat-end",q:"Le matin, à la piscine"}],[{k:e2}]]}
     :{travail:[0,1,3,4],jours:[R0(),R0(),[{k:"esc-tech",q:"Le matin"}],R0(),R0(),[{k:e2}],[{k:"nat-end"}]]};
   }
-  var l3=iso(mon)>="2026-12-21",nc=l3?"nat-cont":"nat-end",nb=l3?"nat-blocs":"nat-end",e3=(weekIdx(mon)%2)?"esc-force":"esc-vol",mm=l3?"m1":"m3";
+  var l3=iso(mon)>="2027-01-18",nc=l3?"nat-cont":"nat-end",nb=l3?"nat-blocs":"nat-end",e3=(weekIdx(mon)%2)?"esc-force":"esc-vol",mm=l3?"m1":"m3";
   return A
     ?{travail:[1,2,3],jours:[[{k:"esc-facile",q:"Le matin"}],[{k:mm,q:SOIR}],R0(),R0(),[{k:"esc-tech",q:"Le matin"}],[{k:nc,q:"Le matin, à la piscine"}],[{k:e3}]]}
     :{travail:[0,1,3,4],jours:[[{k:mm,q:SOIR}],R0(),[{k:"esc-tech",q:"Le matin"}],l3?[{k:"m2",q:SOIR}]:R0(),R0(),[{k:e3}],[{k:nb}]]};
@@ -616,6 +566,9 @@ function stageTpl(st,letter,mon){
 function cycleWeek(mon){var i=Math.round((mon-CREF)/(7*DAY));return i<0?null:(i%6)+1}
 function planOf(mon){
   var letter=letterOf(mon),st=stageOf(mon);
+  if(mon<P1){var tw=TPL[letter].travail,first=iso(mon)==="2026-10-26";
+    return {st:1,letter:letter,w:null,ph:1,tpl:{travail:tw,jours:[R0(),R0(),R0(),R0(),R0(),R0(),first?[{k:"esc-facile"}]:R0()]},label:"Avant la reprise",
+      note:first?"Pas de séance cette semaine : la reprise démarre le dimanche 1er novembre avec une escalade facile.":"Avant la reprise : le programme démarre le 1er novembre."}}
   if(st)return {st:st,letter:letter,w:null,ph:1,tpl:stageTpl(st,letter,mon),label:STAGES[st],note:SNOTE[st]};
   var w=cycleWeek(mon),ph=phaseOf(w);
   if(mon<CEND)return {st:-1,letter:letter,w:w,ph:1,tpl:stageTpl(3,letter,mon),label:PHASES[1]+", transition douce",note:"Premières semaines du programme complet, encore allégées : 3 escalades en semaine A et 2 en semaine B, 1 natation et 1 à 2 séances de sport. Au moins 2 jours de repos."};
@@ -2782,7 +2735,7 @@ var curMon=mondayOf(today);
 var viewMon=curMon;
 var overrides={};
 function obj(x){return x&&typeof x==="object"&&!Array.isArray(x)?Object.assign({},x):{}}
-function norm(d){d=d||{};return {done:obj(d.done),awarded:obj(d.awarded),packs:Array.isArray(d.packs)?d.packs.filter(function(p){return p&&p.t}).slice(0,200):[],coll:obj(d.coll),frag:Math.max(0,+d.frag||0),weeks:obj(d.weeks),log:obj(d.log)}}
+function norm(d){d=d||{};return {done:obj(d.done),awarded:obj(d.awarded),packs:Array.isArray(d.packs)?d.packs.filter(function(p){return p&&p.t}).slice(0,200):[],coll:obj(d.coll),frag:Math.max(0,+d.frag||0),weeks:obj(d.weeks)}}
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 var store=norm(null);
@@ -3028,12 +2981,12 @@ function showCard(id){
 }
 /* ---------- Toast ---------- */
 var toastT=0;
-function toast(title,msg,info){
+function toast(title,msg){
   var t=document.getElementById("toast");
-  t.innerHTML='<p><b>'+esc(title)+'</b>'+esc(msg)+'</p><button id="tOpen">'+(info?"OK":"Ouvrir")+'</button>';
+  t.innerHTML='<p><b>'+esc(title)+'</b>'+esc(msg)+'</p><button id="tOpen">Ouvrir</button>';
   t.hidden=false;
-  document.getElementById("tOpen").onclick=info?hideToast:function(){closeDetail();openPack()};
-  clearTimeout(toastT);toastT=setTimeout(hideToast,info?4000:7000);
+  document.getElementById("tOpen").onclick=function(){closeDetail();openPack()};
+  clearTimeout(toastT);toastT=setTimeout(hideToast,7000);
 }
 function hideToast(){document.getElementById("toast").hidden=true}
 
@@ -3043,7 +2996,7 @@ var CHECK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-wid
 var JABR=["LUN","MAR","MER","JEU","VEN","SAM","DIM"];
 var tab="W";
 
-function renderAll(){renderHead();if(tab==="W")renderWeek();else if(tab==="A")renderAlbum();else renderCoach()}
+function renderAll(){renderHead();if(tab==="W")renderWeek();else renderAlbum()}
 function renderHead(){
   var n=store.packs.length,b=document.getElementById("packBtn"),badge=document.getElementById("packN");
   badge.hidden=!n;badge.textContent=n;b.classList.toggle("has",n>0);
@@ -3161,10 +3114,7 @@ function renderDetail(){
     if(!store.awarded[dk])h+='<p class="reward">Récompense : un Paquet '+FAM[famOfKey(c.k)].n+'</p>';
   }
   h+='</div>';
-  var showLog=s.t!=="rep"&&(allowed(dk)||done);
-  if(showLog)h+='<div id="carnet"></div>';
   var body=document.getElementById("sBody");body.innerHTML=h;body.scrollTop=0;
-  if(showLog)renderCarnet(s,dk);
   var g=document.getElementById("goTimer");if(g)g.onclick=function(){openTimer(s)};
   var d=document.getElementById("doneBtn");if(d)d.onclick=function(){toggle(dk);if(openCtx)renderDetail()};
 }
@@ -3261,329 +3211,6 @@ function draw(){
   document.getElementById("bg").innerHTML=s+"</svg>";
 })();
 
-/* ---------- Coach : connexion à Claude ---------- */
-var API_URL="https://api.anthropic.com/v1/messages",MODEL="claude-sonnet-5-5";
-var SAMPLE=null;
-function initSample(){
-  if(!window.claude||typeof window.claude.use!=="function")return;
-  window.claude.use("sample").then(function(s){SAMPLE=s||null}).catch(function(){}).then(function(){if(tab==="C")renderCoach()});
-}
-function apiKey(){return lsGet("carnet-cle")||""}
-function backend(){return SAMPLE?"claude":(apiKey()?"api":null)}
-function readStream(r,onText){
-  var reader=r.body.getReader(),dec=new TextDecoder(),buf="",text="";
-  function line(l){
-    if(l.indexOf("data:")!==0)return;
-    var ev;try{ev=JSON.parse(l.slice(5))}catch(e){return}
-    if(ev.type==="content_block_delta"&&ev.delta&&ev.delta.type==="text_delta"){text+=ev.delta.text;if(onText)onText(text)}
-    else if(ev.type==="error")throw {status:0,message:(ev.error&&ev.error.message)||"",kind:ev.error&&ev.error.type};
-  }
-  function pump(){return reader.read().then(function(x){
-    if(x.done){if(buf)line(buf);return}
-    buf+=dec.decode(x.value,{stream:true});
-    var parts=buf.split("\n");buf=parts.pop();
-    parts.forEach(line);
-    return pump();
-  })}
-  return pump().then(function(){if(!text.trim())throw {status:0,message:"vide"};return text});
-}
-function apiCall(system,turns,o,withEffort){
-  var body={model:MODEL,max_tokens:o.max||2000,system:system,messages:turns,stream:true};
-  if(withEffort)body.output_config={effort:o.effort||"low"};
-  return fetch(API_URL,{method:"POST",headers:{"content-type":"application/json","x-api-key":apiKey(),"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify(body)})
-  .then(function(r){
-    if(r.ok)return readStream(r,o.onText);
-    return r.text().then(function(t){
-      var m=t;try{m=JSON.parse(t).error.message||t}catch(e){}
-      if(withEffort&&r.status===400&&/output_config|effort/i.test(m))return apiCall(system,turns,o,false);
-      throw {status:r.status,message:m};
-    });
-  });
-}
-function ask(system,turns,o){
-  o=o||{};
-  if(SAMPLE){
-    var input=[{role:"user",content:"Consignes permanentes pour cette conversation :\n\n"+system}].concat(turns);
-    return SAMPLE(input,{cache:false,onText:o.onText?function(u){o.onText(u.text)}:undefined,effort:o.effort||"low"}).then(function(r){return r.text});
-  }
-  if(!apiKey())return Promise.reject({code:"nokey"});
-  return apiCall(system,turns,o,true);
-}
-function errMsg(e){
-  e=e||{};var c=e.code,s=e.status,m=String(e.message||"");
-  if(c==="nokey")return "Le coach n'est pas encore branché : ajoute ta clé API dans l'onglet Coach.";
-  if(c==="not_granted"||c==="sampling_disabled")return "Claude n'est pas autorisé pour cette page.";
-  if(c==="rate_limited"||s===429)return "Trop de demandes d'un coup, réessaie dans une minute.";
-  if(s===401||s===403)return "La clé API n'est pas acceptée. Vérifie la dans les réglages en bas de l'onglet Coach.";
-  if(/credit|balance|billing/i.test(m))return "Plus de crédits API pour ce mois ci. Ils reviennent au prochain versement mensuel.";
-  if(s===529||s===503||s===500||e.kind==="overloaded_error")return "Claude est surchargé, réessaie dans quelques minutes.";
-  if(e instanceof TypeError)return "Pas de connexion, ou la requête a été bloquée. Réessaie plus tard.";
-  return "Le coach n'a pas pu répondre"+(s?" (erreur "+s+")":"")+". Réessaie dans un moment.";
-}
-function md(t){
-  var lines=String(t).replace(/\r/g,"").split("\n"),h="",inL=false;
-  function inl(s){return esc(s).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/(^|[\s(])[*_](?!\s)([^*_]+?)[*_](?=[\s).,;:!?]|$)/g,"$1<i>$2</i>")}
-  lines.forEach(function(l){
-    var m=l.match(/^\s*(?:[-*•]|\d+[.)])\s+(.*)$/);
-    if(m){if(!inL){h+="<ul>";inL=true}h+="<li>"+inl(m[1])+"</li>";return}
-    if(inL){h+="</ul>";inL=false}
-    var hm=l.match(/^#{1,6}\s+(.*)$/);
-    if(hm){h+="<p><b>"+inl(hm[1])+"</b></p>";return}
-    if(l.trim())h+="<p>"+inl(l)+"</p>";
-  });
-  if(inL)h+="</ul>";
-  return h;
-}
-
-/* ---------- Coach : ce qu'il sait ---------- */
-var RLBL=["","Très dur","Dur","Correct","Bien","Excellent"];
-var PROFIL=[
-  "Tu es le coach sportif personnel du propriétaire de l'appli Carnet Grimpe et Nage, qui organise ses séances de la semaine.",
-  "Ce que tu sais de lui :",
-  "- Il grimpe en bloc, surtout à Climb World (Paris 14e), où les blocs sont cotés en niveaux de 1 à 7. Il réussit les niveaux 1 à 3 et commence les 4 ; le niveau 4 est son maximum actuel et le 5 lui paraît encore hors de portée.",
-  "- Il nage la brasse à la piscine Aspirant Dunand (bassin de 25 m), en endurance confortable.",
-  "- Sport à la maison : tapis, poids légers de 3 kg, corde à sauter, poutre d'escalade YY Vertical, élastique d'aide aux tractions. Il veut des séances maison courtes, 15 à 20 min au maximum.",
-  "- Objectif : un physique sec et athlétique, et progresser en escalade sans se blesser.",
-  "- Il a repris le sport en octobre 2026, par paliers : escalade seule jusqu'au 8 novembre, natation à partir du 9 novembre, sport à la maison à partir du 7 décembre, programme complet à partir du 4 janvier 2027.",
-  "- Il alterne des semaines A (3 jours de travail) et B (4 jours de travail). Il ne grimpe pas les jours de travail.",
-  "",
-  "Le carnet note un ressenti de 1 à 5 après chaque séance (1 très dur, 2 dur, 3 correct, 4 bien, 5 excellent), le nombre de blocs réussis par niveau pour l'escalade, et parfois un commentaire.",
-  "",
-  "Ta façon de répondre :",
-  "- En français, en le tutoyant, avec un ton direct, chaleureux et encourageant, comme un coach qui connaît bien son grimpeur.",
-  "- Concret et bref : pas d'introduction, pas de formule de politesse finale, pas de titres. Des paragraphes courts et des listes à puces commençant par un tiret simple. Du gras avec ** sur deux ou trois mots clés au plus.",
-  "- N'utilise jamais le tiret cadratin ni le tiret demi cadratin.",
-  "- Appuie toi uniquement sur les données du carnet ci dessous ; n'invente jamais une séance, un chiffre ou un ressenti qui n'y figure pas. S'il manque une info utile, dis le simplement.",
-  "",
-  "Sécurité :",
-  "- Respecte la reprise par paliers et les règles du topo. N'augmente jamais brutalement le volume ou l'intensité.",
-  "- Une douleur articulaire, tendineuse ou dans un doigt impose d'arrêter l'exercice concerné ; si elle persiste plus de quelques jours, conseille de consulter un médecin ou un kinésithérapeute. Tu n'es pas médecin : jamais de diagnostic."
-].join("\n");
-function rulesTxt(){return Array.prototype.map.call(document.querySelectorAll(".rules li"),function(li){return "- "+li.textContent.trim()}).join("\n")}
-function logTxt(lg){
-  if(!lg)return "";
-  var p=[];if(lg.r)p.push("ressenti "+lg.r+"/5 ("+RLBL[lg.r].toLowerCase()+")");
-  var b=lg.b||{},bs=Object.keys(b).filter(function(k){return b[k]>0}).sort().map(function(k){return b[k]+" au niveau "+k});
-  if(bs.length)p.push("blocs réussis : "+bs.join(", "));
-  if(lg.c)p.push("commentaire : « "+lg.c+" »");
-  return p.length?" ; "+p.join(" ; "):"";
-}
-function sessLine(mon,di,k){
-  var pl=planOf(mon),s=session(k,pl.ph,pl.st),d=addDays(mon,di),dk=dKey(mon,di,k),di2=iso(d),t0=iso(today);
-  var st=store.done[dk]?"faite":(di2<t0?"non faite":(di2===t0?"prévue aujourd'hui":"à venir"));
-  return JOURS[di]+" "+fmt(d)+" : "+s.titre+" ("+s.duree+") : "+st+logTxt(store.log[dk]);
-}
-function weekTxt(mon){
-  var pl=planOf(mon),out=["Semaine "+pl.letter+" du "+fmt(mon)+" au "+fmt(addDays(mon,6))+" ("+pl.label+")"];
-  for(var di=0;di<7;di++)pl.tpl.jours[di].forEach(function(it){if(it.k!=="repos")out.push("- "+sessLine(mon,di,it.k))});
-  if(out.length===1)out.push("- aucune séance prévue");
-  return out.join("\n");
-}
-function sysPrompt(nPast,withNext){
-  var w=[];
-  for(var i=nPast;i>=1;i--)w.push(weekTxt(addDays(curMon,-7*i)));
-  w.push("Semaine en cours :\n"+weekTxt(curMon));
-  if(withNext)w.push("Semaine prochaine :\n"+weekTxt(addDays(curMon,7)));
-  return PROFIL+"\n\nRègles du topo (affichées dans l'appli) :\n"+rulesTxt()
-    +"\n\nAujourd'hui : "+JOURS[(today.getDay()+6)%7].toLowerCase()+" "+fmt(today)+" "+today.getFullYear()+".\n\nCarnet :\n"+w.join("\n\n");
-}
-function sessDetail(s){
-  var p=[s.titre+" ("+s.duree+"). Objectif : "+s.obj];
-  if(s.allure)p.push("Allure : "+s.allure);
-  if(s.ech)p.push("Échauffement : "+s.ech.join(" ; "));
-  if(s.corps)p.push("Corps de séance : "+s.corps.join(" ; "));
-  if(s.exos)p.push("Exercices : "+s.exos.join(", "));
-  if(s.ret)p.push("Retour au calme : "+s.ret.join(" ; "));
-  return p.join("\n");
-}
-function nextSession(fromDate){
-  for(var n=1;n<=14;n++){
-    var d=addDays(fromDate,n),mon=mondayOf(d),di=(d.getDay()+6)%7,pl=planOf(mon);
-    var it=pl.tpl.jours[di].filter(function(x){return x.k!=="repos"})[0];
-    if(it)return JOURS[di].toLowerCase()+" "+fmt(d)+" : "+session(it.k,pl.ph,pl.st).titre;
-  }
-  return "";
-}
-
-/* ---------- Coach : état ---------- */
-var CO={busy:{},out:{},who:{},form:{f:1,t:2,n:""},q:""};
-var FORME=["En forme","Normal","Fatigué","Épuisé"],TEMPS=["30 min","45 min","1 h","1 h 30 ou plus"];
-var MEM={chat:[],day:null,wk:null};
-try{var mm0=JSON.parse(lsGet("carnet-coach")||"{}");MEM.chat=Array.isArray(mm0.chat)?mm0.chat.slice(-30):[];MEM.day=mm0.day||null;MEM.wk=mm0.wk||null}catch(e){}
-function saveMem(){lsSet("carnet-coach",JSON.stringify(MEM))}
-function waitHTML(){return '<p class="wait">Le coach réfléchit…</p>'}
-function boxHTML(t,who){return '<div class="coachbox">'+(who?'<p class="who">'+esc(who)+'</p>':"")+md(t)+'</div>'}
-function errHTML(e){return '<div class="coachbox err"><p>'+esc(errMsg(e))+'</p></div>'}
-function slot(key){return CO.out[key]?boxHTML(CO.out[key],CO.who[key]):waitHTML()}
-function run(key,id,system,turns,opts,done){
-  if(CO.busy[key])return;
-  opts=opts||{};
-  CO.busy[key]=true;CO.out[key]="";CO.who[key]=opts.who||"";
-  var el=document.getElementById(id);if(el)el.innerHTML=waitHTML();
-  opts.onText=function(t){CO.out[key]=t;var x=document.getElementById(id);if(x)x.innerHTML=boxHTML(t,opts.who)};
-  ask(system,turns,opts).then(function(t){
-    CO.busy[key]=false;CO.out[key]="";done(null,t);
-  },function(e){
-    CO.busy[key]=false;CO.out[key]="";
-    var x=document.getElementById(id);if(x)x.innerHTML=errHTML(e);
-    done(e||{});
-  });
-}
-
-/* ---------- Carnet de séance (dans la fiche) ---------- */
-var DR={dk:null,r:0,b:{},c:""};
-function draftFor(dk){
-  if(DR.dk===dk)return DR;
-  var lg=store.log[dk]||{};
-  DR={dk:dk,r:+lg.r||0,b:obj(lg.b),c:lg.c||""};
-  return DR;
-}
-function renderCarnet(s,dk){
-  var box=document.getElementById("carnet");if(!box)return;
-  var d=draftFor(dk),lg=store.log[dk],h='<div class="carnet"><h3>Carnet de séance</h3>';
-  h+='<p class="lab">Ressenti</p><div class="rate" role="group" aria-label="Ressenti">';
-  for(var r=1;r<=5;r++)h+='<button data-r="'+r+'" aria-pressed="'+(d.r===r)+'">'+r+'<small>'+RLBL[r]+'</small></button>';
-  h+='</div>';
-  if(s.t==="esc"){
-    h+='<p class="lab">Blocs réussis par niveau</p><div class="lvs">';
-    for(var n=1;n<=7;n++){var v=+d.b[n]||0;h+='<div class="lv'+(v?" on":"")+'"><button data-lv="'+n+'" data-dir="-1" aria-label="Un bloc de niveau '+n+' en moins"'+(v?"":" disabled")+'>−</button><span><small>Niv. '+n+'</small><b>'+v+'</b></span><button data-lv="'+n+'" data-dir="1" aria-label="Un bloc de niveau '+n+' en plus">+</button></div>'}
-    h+='</div>';
-  }
-  h+='<textarea id="logC" rows="2" placeholder="Un mot sur la séance (facultatif)">'+esc(d.c)+'</textarea>';
-  h+='<button class="btn" id="logSave">'+(lg?"Mettre à jour le carnet":"Enregistrer dans le carnet")+'</button>';
-  h+='<div id="dbx_'+esc(dk)+'">'+(CO.busy["db"+dk]?slot("db"+dk):(lg&&lg.d?boxHTML(lg.d,"Débrief du coach"):""))+'</div>';
-  h+='<button class="btn c" id="dbBtn"'+(CO.busy["db"+dk]?" disabled":"")+'>'+(lg&&lg.d?"Refaire le débrief":"Débrief du coach")+'</button>';
-  h+='</div>';
-  box.innerHTML=h;
-}
-function saveLog(dk){
-  var d=draftFor(dk),ta=document.getElementById("logC");if(ta)d.c=ta.value.trim().slice(0,500);
-  var b={};Object.keys(d.b).forEach(function(k){if(+d.b[k]>0)b[k]=Math.min(99,+d.b[k])});
-  var prev=store.log[dk]||{};
-  if(!d.r&&!Object.keys(b).length&&!d.c&&!prev.d){delete store.log[dk];persist();return false}
-  store.log[dk]={r:d.r||0,b:b,c:d.c,d:prev.d||"",at:iso(today)};
-  if(!store.done[dk]&&allowed(dk)){toggle(dk)}else persist();
-  return true;
-}
-function debrief(dk){
-  saveLog(dk);
-  var p=dk.split("|"),mon=parseIso(p[0]),di=+p[1],pl=planOf(mon),s=session(p[2],pl.ph,pl.st),date=addDays(mon,di);
-  var lg=store.log[dk];
-  var q="Séance à débriefer : celle du "+JOURS[di].toLowerCase()+" "+fmt(date)+"\n\nContenu prévu :\n"+sessDetail(s)
-    +"\n\nCe qu'il a noté :"+(lg?logTxt(lg).replace(/^ ; /," "):" rien pour l'instant (ni ressenti, ni blocs, ni commentaire)")
-    +"\n\nProchaine séance au programme : "+(nextSession(date)||"aucune dans les deux semaines")
-    +".\n\nFais un débrief en 80 à 140 mots : ce qui va bien, un point d'attention, et comment aborder la prochaine séance. Si le carnet est vide, invite le à noter son ressenti et donne un conseil général court.";
-  var btn=document.getElementById("dbBtn");if(btn)btn.disabled=true;
-  run("db"+dk,"dbx_"+dk,sysPrompt(2,false),[{role:"user",content:q}],{effort:"low",who:"Débrief du coach"},function(e,t){
-    if(!e&&t){var l=store.log[dk]||{r:0,b:{},c:"",at:iso(today)};l.d=t;store.log[dk]=l;persist()}
-    if(openCtx&&!T.view&&dKey(openCtx.mon,openCtx.di,openCtx.k)===dk){var b2=document.getElementById("dbBtn");if(b2){b2.disabled=false;b2.textContent="Refaire le débrief"}}
-  });
-}
-
-/* ---------- Onglet Coach ---------- */
-function todayItems(){
-  var di=(today.getDay()+6)%7,pl=planOf(curMon);
-  return pl.tpl.jours[di].filter(function(x){return x.k!=="repos"}).map(function(it){return {it:it,s:session(it.k,pl.ph,pl.st),dk:dKey(curMon,di,it.k)}});
-}
-function keepInputs(){
-  var q=document.getElementById("cQ");if(q)CO.q=q.value;
-  var n=document.getElementById("cNote");if(n)CO.form.n=n.value;
-}
-function renderCoach(){
-  var v=document.getElementById("viewC");
-  keepInputs();
-  var be=backend(),h="";
-  if(!be){
-    h+='<section class="ccard gold"><h2>Brancher le coach</h2>'
-      +'<p>Le coach fonctionne avec tes crédits API Claude. Il te faut une clé API, à créer une seule fois.</p>'
-      +'<ol class="steps"><li>Va sur <a href="https://platform.claude.com/settings/keys" target="_blank" rel="noopener">platform.claude.com</a>, dans l\'organisation qui reçoit tes crédits du forfait Max.</li><li>Crée une clé (bouton Create Key), nomme la par exemple « Carnet », puis copie la.</li><li>Colle la ci dessous. Elle reste enregistrée uniquement sur cet appareil, jamais dans le code de l\'appli.</li></ol>'
-      +'<input id="cKey" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="sk-ant-…" aria-label="Clé API Claude">'
-      +'<button class="btn primary" id="cKeySave">Enregistrer la clé</button>'
-      +'<p class="cfoot2">Conseil : fixe aussi une limite de dépense mensuelle dans la Console. Une question au coach coûte environ un centime.</p></section>';
-  }
-  var items=todayItems(),f=CO.form;
-  h+='<section class="ccard"><h2>Séance du jour adaptée</h2><div class="cday">'
-    +(items.length?items.map(function(x){return '<div class="t-'+x.s.t+'">'+esc(x.s.titre)+'<small>'+esc(x.s.duree)+(store.done[x.dk]?" · déjà faite":"")+'</small></div>'}).join(""):'<div class="t-rep">Repos prévu aujourd\'hui<small>Le coach peut te proposer une récupération active si tu veux bouger.</small></div>')
-    +'</div><p class="lab">Ta forme</p><div class="opts" role="group" aria-label="Ta forme">'
-    +FORME.map(function(x,i){return '<button data-f="'+i+'" aria-pressed="'+(f.f===i)+'">'+x+'</button>'}).join("")
-    +'</div><p class="lab">Temps disponible</p><div class="opts" role="group" aria-label="Temps disponible">'
-    +TEMPS.map(function(x,i){return '<button data-t="'+i+'" aria-pressed="'+(f.t===i)+'">'+x+'</button>'}).join("")
-    +'</div><input id="cNote" type="text" placeholder="Une gêne, une envie ? (facultatif)" value="'+esc(f.n)+'">'
-    +'<button class="btn primary" id="cDay"'+(CO.busy.day?" disabled":"")+'>Adapter ma séance</button>'
-    +'<div id="cDayOut">'+(CO.busy.day?slot("day"):(MEM.day&&MEM.day.d===iso(today)?boxHTML(MEM.day.t):""))+'</div></section>';
-  h+='<section class="ccard nat"><h2>Bilan de la semaine</h2><p>Régularité, ressentis, progression vers le niveau 5 et cap pour la semaine suivante, à partir de ton carnet.</p>'
-    +'<button class="btn" id="cWk"'+(CO.busy.wk?" disabled":"")+'>Faire le bilan</button>'
-    +'<div id="cWkOut">'+(CO.busy.wk?slot("wk"):(MEM.wk&&MEM.wk.m===iso(curMon)?boxHTML(MEM.wk.t,"Bilan du "+fmt(parseIso(MEM.wk.d))):""))+'</div></section>';
-  h+='<section class="ccard mai"><h2>Questions libres</h2><div class="chat" id="cChat">'
-    +(MEM.chat.length?MEM.chat.map(function(m){return m.role==="user"?'<div class="bub me">'+esc(m.content)+'</div>':'<div class="bub co">'+boxHTML(m.content)+'</div>'}).join(""):'<p class="cfoot2">Un conseil technique, un exercice, une douleur, un doute sur ton programme : demande.</p>')
-    +(CO.busy.chat?'<div class="bub co" id="cLive">'+slot("chat")+'</div>':"")
-    +'</div><div class="crow"><textarea id="cQ" rows="2" placeholder="Ta question">'+esc(CO.q)+'</textarea><button class="btn primary" id="cSend"'+(CO.busy.chat?" disabled":"")+'>Envoyer</button></div>'
-    +(MEM.chat.length?'<button class="linkbtn" id="cClear" style="align-self:flex-start">Effacer la conversation</button>':"")+'</section>';
-  if(be==="api")h+='<p class="cfoot2"><span>Coach branché sur ta clé API, enregistrée sur cet appareil.</span><button class="linkbtn" id="cKeyDel">Retirer la clé</button></p>';
-  else if(be==="claude")h+='<p class="cfoot2">Coach branché sur ton compte Claude.</p>';
-  v.innerHTML=h;
-}
-function coachDay(){
-  var items=todayItems(),f=CO.form,n=document.getElementById("cNote");if(n)f.n=n.value.trim();
-  var q="Adapte ma séance d'aujourd'hui.\n\n"+(items.length?"Séance"+(items.length>1?"s":"")+" prévue"+(items.length>1?"s":"")+" aujourd'hui :\n"+items.map(function(x){return sessDetail(x.s)+(store.done[x.dk]?"\n(déjà faite)":"")}).join("\n\n"):"Aujourd'hui est un jour de repos dans le programme.")
-    +"\n\nMa forme : "+FORME[f.f].toLowerCase()+".\nTemps disponible : "+TEMPS[f.t]+"."+(f.n?"\nRemarque : "+f.n:"")
-    +"\n\nDonne moi la version concrète à faire aujourd'hui (échauffement, corps de séance, retour au calme), en 150 à 220 mots, en respectant les règles du topo. Si c'est un jour de repos, confirme le repos ou propose au plus une récupération active légère et courte.";
-  run("day","cDayOut",sysPrompt(1,false),[{role:"user",content:q}],{effort:"low"},function(e,t){
-    if(!e&&t){MEM.day={d:iso(today),t:t};saveMem()}
-    var b=document.getElementById("cDay");if(b)b.disabled=false;
-  });
-}
-function coachWeek(){
-  var q="Fais le bilan de ma semaine en cours, en la comparant aux semaines précédentes : régularité, ressentis, blocs réussis et progression vers le niveau 5, un ou deux points à travailler, et ce que je dois viser la semaine prochaine d'après les séances prévues. En 180 à 250 mots.";
-  run("wk","cWkOut",sysPrompt(3,true),[{role:"user",content:q}],{effort:"medium",max:4000,who:"Bilan du "+fmt(today)},function(e,t){
-    if(!e&&t){MEM.wk={m:iso(curMon),d:iso(today),t:t};saveMem()}
-    var b=document.getElementById("cWk");if(b)b.disabled=false;
-  });
-}
-function coachChat(){
-  var qa=document.getElementById("cQ"),q=(qa?qa.value:"").trim();
-  if(!q||CO.busy.chat)return;
-  MEM.chat.push({role:"user",content:q.slice(0,2000)});CO.q="";if(qa)qa.value="";
-  var turns=MEM.chat.slice(-12);while(turns.length&&turns[0].role!=="user")turns.shift();
-  CO.busy.chat=true;CO.out.chat="";renderCoach();CO.busy.chat=false;
-  run("chat","cLive",sysPrompt(2,true),turns.map(function(m){return {role:m.role,content:m.content}}),{effort:"low"},function(e,t){
-    if(!e&&t){MEM.chat.push({role:"assistant",content:t});saveMem();if(tab==="C")renderCoach();return}
-    MEM.chat.pop();
-    if(tab==="C"){var err=errHTML(e);renderCoach();var c=document.getElementById("cChat");if(c){var d=document.createElement("div");d.className="bub co";d.innerHTML=err;c.appendChild(d)}}
-    var qb=document.getElementById("cQ");if(qb&&!qb.value)qb.value=q;if(!CO.q)CO.q=q;
-  });
-  var live=document.getElementById("cLive");if(live)live.scrollIntoView({block:"nearest",behavior:"smooth"});
-}
-document.getElementById("viewC").addEventListener("click",function(e){
-  var t=e.target.closest("button");if(!t)return;
-  if(t.hasAttribute("data-f")){keepInputs();CO.form.f=+t.getAttribute("data-f");renderCoach();return}
-  if(t.hasAttribute("data-t")){keepInputs();CO.form.t=+t.getAttribute("data-t");renderCoach();return}
-  if(t.id==="cKeySave"){
-    var k=(document.getElementById("cKey").value||"").trim();
-    if(!/^sk-ant-/.test(k)){toast("Clé non reconnue","Une clé API Claude commence par sk-ant-",true);return}
-    lsSet("carnet-cle",k);toast("Coach branché","Ta clé est enregistrée sur cet appareil.",true);renderCoach();return;
-  }
-  if(t.id==="cKeyDel"){try{localStorage.removeItem("carnet-cle")}catch(x){}renderCoach();return}
-  if(t.id==="cDay"){if(!backend()){toast("Coach non branché","Ajoute d'abord ta clé API en haut de l'onglet.",true);return}t.disabled=true;coachDay();return}
-  if(t.id==="cWk"){if(!backend()){toast("Coach non branché","Ajoute d'abord ta clé API en haut de l'onglet.",true);return}t.disabled=true;coachWeek();return}
-  if(t.id==="cSend"){if(!backend()){toast("Coach non branché","Ajoute d'abord ta clé API en haut de l'onglet.",true);return}coachChat();return}
-  if(t.id==="cClear"){MEM.chat=[];saveMem();renderCoach();return}
-});
-document.getElementById("viewC").addEventListener("keydown",function(e){
-  if(e.target.id==="cQ"&&e.key==="Enter"&&(e.metaKey||e.ctrlKey)){e.preventDefault();if(backend())coachChat()}
-});
-document.getElementById("sBody").addEventListener("click",function(e){
-  if(!openCtx||T.view)return;
-  var t=e.target.closest("button");if(!t)return;
-  var c=openCtx,dk=dKey(c.mon,c.di,c.k);
-  if(!document.getElementById("carnet")||!document.getElementById("carnet").contains(t))return;
-  var pl=planOf(c.mon),s=session(c.k,pl.ph,pl.st),d=draftFor(dk),ta=document.getElementById("logC");if(ta)d.c=ta.value;
-  if(t.hasAttribute("data-r")){var r=+t.getAttribute("data-r");d.r=d.r===r?0:r;renderCarnet(s,dk);return}
-  if(t.hasAttribute("data-lv")){var n=t.getAttribute("data-lv");d.b[n]=Math.max(0,Math.min(99,(+d.b[n]||0)+(+t.getAttribute("data-dir"))));renderCarnet(s,dk);return}
-  if(t.id==="logSave"){var ok=saveLog(dk);if(openCtx){renderDetail();var sv=document.getElementById("carnet");if(sv&&ok){var p=document.createElement("p");p.className="saved";p.textContent="Noté dans le carnet.";sv.querySelector(".carnet").appendChild(p)}}return}
-  if(t.id==="dbBtn"){if(!backend()){var el=document.getElementById("dbx");if(el)el.innerHTML='<div class="coachbox err"><p>'+esc(errMsg({code:"nokey"}))+'</p></div>';return}debrief(dk);return}
-});
-
 /* ---------- Évènements ---------- */
 document.getElementById("days").addEventListener("click",function(e){
   var ck=e.target.closest(".check");if(ck){if(!ck.disabled)toggle(ck.getAttribute("data-dk"));return}
@@ -3601,13 +3228,11 @@ function setTab(t){
   tab=t;
   document.getElementById("tabW").setAttribute("aria-selected",String(t==="W"));
   document.getElementById("tabA").setAttribute("aria-selected",String(t==="A"));
-  document.getElementById("tabC").setAttribute("aria-selected",String(t==="C"));
-  document.getElementById("viewW").hidden=t!=="W";document.getElementById("viewA").hidden=t!=="A";document.getElementById("viewC").hidden=t!=="C";
+  document.getElementById("viewW").hidden=t!=="W";document.getElementById("viewA").hidden=t!=="A";
   renderAll();
 }
 document.getElementById("tabW").onclick=function(){setTab("W")};
 document.getElementById("tabA").onclick=function(){setTab("A")};
-document.getElementById("tabC").onclick=function(){setTab("C")};
 document.getElementById("packBtn").onclick=function(){if(store.packs.length)openPack();else setTab("A")};
 document.getElementById("sClose").onclick=closeDetail;
 backdrop.onclick=closeDetail;
@@ -3618,7 +3243,6 @@ if(reconcile())lsSet("carnet-v2",JSON.stringify(store));
 setSync("appareil");
 renderAll();
 initDb();
-initSample();
 })();
 </script>
 <script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}</script>
