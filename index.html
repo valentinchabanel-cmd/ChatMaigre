@@ -563,12 +563,27 @@ function stageTpl(st,letter,mon){
     ?{travail:[1,2,3],jours:[[{k:"esc-facile",q:"Le matin"}],[{k:mm,q:SOIR}],R0(),R0(),[{k:"esc-tech",q:"Le matin"}],[{k:nc,q:"Le matin, à la piscine"}],[{k:e3}]]}
     :{travail:[0,1,3,4],jours:[[{k:mm,q:SOIR}],R0(),[{k:"esc-tech",q:"Le matin"}],l3?[{k:"m2",q:SOIR}]:R0(),R0(),[{k:e3}],[{k:nb}]]};
 }
+/* ---------- Planning réel, aligné sur Google Agenda (mis à jour le 1er novembre 2026) ---------- */
+function E(k,q){return [{k:k,q:q}]}
+var CAL={
+ "2026-11-02":{l:"adaptée",t:[0,2,3],j:[R0(),E("esc-facile","10h, avant le RDV de 14h"),R0(),R0(),E("esc-tech","15h, après le rendez-vous médical"),R0(),R0()],
+   n:"Semaine adaptée : 3 jours de travail (lundi, mercredi, jeudi), mardi libre. 2 escalades seulement, car le dimanche est pris par le JdR. Rien les jours de travail."},
+ "2026-11-09":{l:"adaptée",t:[0,1,2],j:[R0(),R0(),R0(),E("esc-tech","10h"),R0(),E("esc-facile","10h"),R0()],
+   n:"Semaine adaptée : 3 jours de travail (lundi, mardi, mercredi). Les 4 jours libres se suivent, donc 2 escalades pour ne jamais grimper deux jours de suite."},
+ "2026-11-16":{l:"B",t:[0,1,3,4],j:[R0(),R0(),E("esc-tech","10h"),R0(),R0(),E("esc-facile","10h"),R0()],
+   n:"Semaine B : 4 jours de travail, 2 escalades (mercredi et samedi)."},
+ "2026-11-23":{l:"A",t:[1,2,3],j:[E("esc-facile","10h"),R0(),R0(),R0(),E("esc-tech","10h"),R0(),E("esc-facile","10h")],
+   n:"Semaine A : 3 jours de travail, 3 escalades (lundi, vendredi, dimanche)."},
+ "2026-11-30":{l:"B",t:[0,1,3,4],j:[R0(),R0(),E("esc-tech","10h"),R0(),R0(),E("esc-facile","10h"),E("nat-end","10h, à la piscine")],
+   n:"Semaine B : 4 jours de travail. 2 escalades et la première natation de la reprise (1000 m le dimanche)."}
+};
 function cycleWeek(mon){var i=Math.round((mon-CREF)/(7*DAY));return i<0?null:(i%6)+1}
 function planOf(mon){
   var letter=letterOf(mon),st=stageOf(mon);
   if(mon<P1){var tw=TPL[letter].travail,first=iso(mon)==="2026-10-26";
     return {st:1,letter:letter,w:null,ph:1,tpl:{travail:tw,jours:[R0(),R0(),R0(),R0(),R0(),R0(),first?[{k:"esc-facile"}]:R0()]},label:"Avant la reprise",
       note:first?"Pas de séance cette semaine : la reprise démarre le dimanche 1er novembre avec une escalade facile.":"Avant la reprise : le programme démarre le 1er novembre."}}
+  var cw=CAL[iso(mon)];if(cw&&!overrides[iso(mon)])return {st:st||-1,letter:cw.l,w:null,ph:1,tpl:{travail:cw.t,jours:cw.j},label:st?STAGES[st]:PHASES[1],note:cw.n};
   if(st)return {st:st,letter:letter,w:null,ph:1,tpl:stageTpl(st,letter,mon),label:STAGES[st],note:SNOTE[st]};
   var w=cycleWeek(mon),ph=phaseOf(w);
   if(mon<CEND)return {st:-1,letter:letter,w:w,ph:1,tpl:stageTpl(3,letter,mon),label:PHASES[1]+", transition douce",note:"Premières semaines du programme complet, encore allégées : 3 escalades en semaine A et 2 en semaine B, 1 natation et 1 à 2 séances de sport. Au moins 2 jours de repos."};
